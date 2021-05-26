@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
@@ -22,6 +23,7 @@ public class CommandBuilder {
     private BiFunction<CommandSender, CommandEnvironment, String[]> help;
     private String description;
     private final String name;
+    private String permission;
 
     public CommandBuilder(String name)
     {
@@ -31,6 +33,22 @@ public class CommandBuilder {
     public String getName()
     {
         return name;
+    }
+
+    public String getPermission()
+    {
+        return permission;
+    }
+
+    public boolean hasPermission(CommandSender sender)
+    {
+        return permission == null || sender.hasPermission(permission);
+    }
+
+    public CommandBuilder permission(final String permission)
+    {
+        this.permission = permission;
+        return this;
     }
 
     public CommandBuilder withArg(CommandArgument argument)
@@ -63,7 +81,10 @@ public class CommandBuilder {
             return help.apply(sender, env);
         else
         {
-            String[] msg = new String[subCommands.size() + (description == null ? 0 : 1)];
+            List<CommandBuilder> validSubCommands = subCommands.values().stream()
+                                                               .filter(cmd -> cmd.hasPermission(sender))
+                                                               .collect(Collectors.toList());
+            String[] msg = new String[validSubCommands.size() + (description == null ? 0 : 1)];
             StringJoiner argListJoiner = new StringJoiner(" ", name, "");
             for (CommandArgument arg : arguments)
                 argListJoiner.add("{" + arg.name + "}");
@@ -73,7 +94,7 @@ public class CommandBuilder {
             int i = 0;
             if (description != null)
                 msg[i++] = argList + " : " + description;
-            for (CommandBuilder subCommand : subCommands.values())
+            for (CommandBuilder subCommand : validSubCommands)
                 msg[i++] = argList + (subCommand.hasDescription() ? " : " + subCommand.getDescription() : "");
             return msg;
         }
@@ -141,7 +162,11 @@ public class CommandBuilder {
         }
         else if (i < args.size() && subCommands.containsKey(args.get(i)))
         {
-            subCommands.get(args.get(i)).execute(sender, env, args.subList(i + 1, args.size()));
+            CommandBuilder subCommand = subCommands.get(args.get(i));
+            if (subCommand.hasPermission(sender))
+                subCommand.execute(sender, env, args.subList(i + 1, args.size()));
+            else
+                sender.sendMessage(ChatColor.RED + "Vous n'avez pas la permission de faire cela.");
             return;
         }
 

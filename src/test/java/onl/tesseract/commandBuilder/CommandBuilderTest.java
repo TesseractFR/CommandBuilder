@@ -399,4 +399,38 @@ class CommandBuilderTest {
         verify(player, times(1)).getMoney();
         verify(sender, times(0)).sendMessage(anyString());
     }
+
+    @Test
+    public void permissionAllow()
+    {
+        Player player = mock(Player.class);
+        when(sender.hasPermission("perm")).thenReturn(true);
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        CommandBuilder subCmd = new CommandBuilder("subCmd");
+        subCmd.permission("perm")
+              .command(env -> player.getName());
+        cmd.subCommand(subCmd)
+           .command(env -> fail());
+
+        cmd.execute(sender, List.of("subCmd"));
+        verify(player, times(1)).getName();
+        verify(sender, times(0)).sendMessage(anyString());
+    }
+
+    @Test
+    public void permissionDeny()
+    {
+        Player player = mock(Player.class);
+        when(sender.hasPermission("perm")).thenReturn(false);
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        CommandBuilder subCmd = new CommandBuilder("subCmd");
+        subCmd.permission("perm")
+              .command(env -> player.getName());
+        cmd.subCommand(subCmd)
+           .command(env -> fail());
+
+        cmd.execute(sender, List.of("subCmd"));
+        verify(player, times(0)).getName();
+        verify(sender, times(1)).sendMessage(anyString());
+    }
 }
