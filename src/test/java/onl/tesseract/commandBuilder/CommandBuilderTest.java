@@ -175,7 +175,49 @@ class CommandBuilderTest {
                     .command(env -> fail());
 
         moneyCommand.execute(sender, List.of("GabRay", "give", "42"));
+        verify(sender, times(0)).sendMessage(anyString());
         verify(player, times(1)).giveMoney(42);
+    }
+
+    @Test
+    public void MoneyGivePlayerOptionalArgument()
+    {
+        TPlayer player = mock(TPlayer.class);
+
+        CommandBuilder moneyCommand = new CommandBuilder();
+        moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
+                                     .supplier((input, env) -> player))
+                    .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
+                                     .supplier((input, env) -> Float.parseFloat(input))
+                                     .error(NumberFormatException.class, "Nombre invalide")
+                                     .defaultValue(env -> 21))
+                    .command(env -> {
+                        env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
+                    });
+
+        moneyCommand.execute(sender, List.of("GabRay", "42"));
+        verify(player, times(1)).giveMoney(42);
+        verify(sender, times(0)).sendMessage(anyString());
+    }
+
+    @Test
+    public void MoneyGivePlayerOptionalArgumentOpt()
+    {
+        TPlayer player = mock(TPlayer.class);
+
+        CommandBuilder moneyCommand = new CommandBuilder();
+        moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
+                                     .supplier((input, env) -> player))
+                    .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
+                                             .supplier((input, env) -> Float.parseFloat(input))
+                                             .error(NumberFormatException.class, "Nombre invalide")
+                                             .defaultValue(env -> 21f))
+                    .command(env -> {
+                        env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
+                    });
+
+        moneyCommand.execute(sender, List.of("GabRay"));
+        verify(player, times(1)).giveMoney(21);
         verify(sender, times(0)).sendMessage(anyString());
     }
 }

@@ -14,12 +14,19 @@ import java.util.logging.Level;
 
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
+    ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
 
     public CommandBuilder withArg(CommandArgument argument)
     {
         arguments.add(argument);
+        return this;
+    }
+
+    public CommandBuilder withOptionalArg(OptionalCommandArgument optArg)
+    {
+        optionalArguments.add(optArg);
         return this;
     }
 
@@ -36,23 +43,41 @@ public class CommandBuilder {
 
     public void execute(CommandSender sender, CommandEnvironment env, List<String> args)
     {
-        boolean subCommandExecuted = false;
-        for (int i = 0; i < args.size(); i++)
+        if (args.size() < arguments.size())
+            return;
+        if (!optionalArguments.isEmpty() && args.size() > arguments.size() + optionalArguments.size())
+            return;
+
+        // Parse mandatory arguments
+        int i;
+        for (i = 0; i < arguments.size() ; i++)
         {
-            if (i < arguments.size())
-                parseArgument(env, arguments.get(i), args.get(i), sender);
-            else if (subCommands.containsKey(args.get(i)))
-            {
-                subCommands.get(args.get(i)).execute(sender, env, args.subList(i + 1, args.size()));
-                subCommandExecuted = true;
-            }
+            if (!parseArgument(env, arguments.get(i), args.get(i), sender))
+                return;
         }
 
-        if (!subCommandExecuted)
-            consumer.accept(env);
+        // Parse optional arguments
+        if (!optionalArguments.isEmpty())
+        {
+            for (i = 0; i + arguments.size() < args.size() && i < optionalArguments.size(); i++)
+            {
+                if (!parseArgument(env, optionalArguments.get(i), args.get(i + arguments.size()), sender))
+                    return;
+            }
+            // Default values
+            for (; i < optionalArguments.size(); i++)
+                env.set(optionalArguments.get(i).name, optionalArguments.get(i).getDefault(env));
+        }
+        else if (i < args.size() && subCommands.containsKey(args.get(i)))
+        {
+            subCommands.get(args.get(i)).execute(sender, env, args.subList(i + 1, args.size()));
+            return;
+        }
+
+        consumer.accept(env);
     }
 
-    private void parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
+    private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
     {
         Object parsed;
         try
@@ -73,11 +98,11 @@ public class CommandBuilder {
                     System.err.println("Error while executing command");
                     e.printStackTrace();
                 }
-                return;
             }
-            return;
+            return false;
         }
         env.set(argument.name, parsed);
+        return true;
     }
 
     public CommandBuilder subCommand(String name, CommandBuilder subCommand)
