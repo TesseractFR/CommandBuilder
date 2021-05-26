@@ -31,7 +31,7 @@ public class CommandBuilder {
             Object parsed;
             try
             {
-                parsed = arguments.get(i).supplier.apply(args.get(i));
+                parsed = arguments.get(i).supplier.apply(args.get(i), env);
             }
             catch (Exception e)
             {

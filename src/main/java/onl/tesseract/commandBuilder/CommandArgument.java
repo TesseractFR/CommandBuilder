@@ -2,12 +2,12 @@ package onl.tesseract.commandBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public class CommandArgument {
     public final String name;
     public final Class<?> clazz;
-    public Function<String, Object> supplier;
+    public BiFunction<String, CommandEnvironment, Object> supplier;
     private final Map<Class<? extends Throwable>, String> errors = new HashMap<>();
 
     public CommandArgument(String name, Class<?> clazz)
@@ -16,7 +16,7 @@ public class CommandArgument {
         this.clazz = clazz;
     }
 
-    public CommandArgument supplier(Function<String, Object> supplier)
+    public CommandArgument supplier(BiFunction<String, CommandEnvironment, Object> supplier)
     {
         this.supplier = supplier;
         return this;
