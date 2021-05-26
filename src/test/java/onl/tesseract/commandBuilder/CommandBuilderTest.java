@@ -32,7 +32,7 @@ class CommandBuilderTest {
     {
         // Given
         Player test = mock(Player.class);
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", Player.class)
                              .supplier((input, env) -> test))
                     .command(env -> {
@@ -49,7 +49,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                              .supplier((input, env) -> player))
                     .withArg(new CommandArgument("quantity", Float.class)
@@ -69,7 +69,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withArg(new CommandArgument("quantity", Float.class)
@@ -95,7 +95,7 @@ class CommandBuilderTest {
         when(guild.getParcels()).thenReturn(new HashSet<>(Set.of(parcel)));
         Guild.guilds.add(guild);
 
-        CommandBuilder getParcelCommand = new CommandBuilder();
+        CommandBuilder getParcelCommand = new CommandBuilder("getParcel");
         getParcelCommand.withArg(new CommandArgument("guild", Guild.class)
                                          .supplier((input, env) -> {
                                              Guild g = Guild.forName(input);
@@ -130,7 +130,7 @@ class CommandBuilderTest {
         when(guild.getParcels()).thenReturn(new HashSet<>(Set.of(parcel)));
         Guild.guilds.add(guild);
 
-        CommandBuilder getParcelCommand = new CommandBuilder();
+        CommandBuilder getParcelCommand = new CommandBuilder("getParcel");
         getParcelCommand.withArg(new CommandArgument("guild", Guild.class)
                                          .supplier((input, env) -> {
                                              Guild g = Guild.forName(input);
@@ -161,17 +161,17 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyGiveCommand = new CommandBuilder();
+        CommandBuilder moneyGiveCommand = new CommandBuilder("give");
         moneyGiveCommand.withArg(new CommandArgument("quantity", Float.class)
                                          .supplier((input, env) -> Float.parseFloat(input))
                                          .error(NumberFormatException.class, "Nombre invalide"))
                         .command(env -> {
                             env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                         });
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .subCommand("give", moneyGiveCommand)
+                    .subCommand(moneyGiveCommand)
                     .command(env -> fail());
 
         moneyCommand.execute(sender, List.of("GabRay", "give", "42"));
@@ -184,7 +184,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
@@ -205,7 +205,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
@@ -226,7 +226,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
@@ -259,7 +259,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
@@ -292,7 +292,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
@@ -325,7 +325,7 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
@@ -358,21 +358,21 @@ class CommandBuilderTest {
     {
         TPlayer player = mock(TPlayer.class);
 
-        CommandBuilder giveCommand = new CommandBuilder();
+        CommandBuilder giveCommand = new CommandBuilder("give");
         giveCommand.withArg(new CommandArgument("amount", Float.class)
                                     .supplier((input, env) -> Float.parseFloat(input))
                                     .error(NumberFormatException.class, "Nombre invalide"))
                    .command(env -> env.get("player", TPlayer.class).giveMoney(env.get("amount", Float.class)));
-        CommandBuilder takeCommand = new CommandBuilder();
+        CommandBuilder takeCommand = new CommandBuilder("take");
         takeCommand.withArg(new CommandArgument("amount", Float.class)
                                     .supplier((input, env) -> Float.parseFloat(input))
                                     .error(NumberFormatException.class, "Nombre invalide"))
                    .command(env -> env.get("player", TPlayer.class).takeMoney(env.get("amount", Float.class)));
-        CommandBuilder moneyCommand = new CommandBuilder();
+        CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .subCommand("give", giveCommand)
-                    .subCommand("take", takeCommand)
+                    .subCommand(giveCommand)
+                    .subCommand(takeCommand)
                     .command(env -> {
                         env.get("player", TPlayer.class).getMoney();
                     });

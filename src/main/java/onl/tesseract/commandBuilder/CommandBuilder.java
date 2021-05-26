@@ -10,6 +10,8 @@ import org.bukkit.util.Consumer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 
 public class CommandBuilder {
@@ -17,6 +19,19 @@ public class CommandBuilder {
     ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
+    private BiFunction<CommandSender, CommandEnvironment, String[]> help;
+    private String description;
+    private final String name;
+
+    public CommandBuilder(String name)
+    {
+        this.name = name;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 
     public CommandBuilder withArg(CommandArgument argument)
     {
@@ -36,6 +51,50 @@ public class CommandBuilder {
         return this;
     }
 
+    public CommandBuilder help(BiFunction<CommandSender, CommandEnvironment, String[]> help)
+    {
+        this.help = help;
+        return this;
+    }
+
+    public String[] help(CommandSender sender, CommandEnvironment env)
+    {
+        if (help != null)
+            return help.apply(sender, env);
+        else
+        {
+            String[] msg = new String[subCommands.size() + (description == null ? 0 : 1)];
+            StringJoiner argListJoiner = new StringJoiner(" ", name, "");
+            for (CommandArgument arg : arguments)
+                argListJoiner.add("{" + arg.name + "}");
+            for (CommandArgument arg : optionalArguments)
+                argListJoiner.add("[" + arg.name + "]");
+            String argList = argListJoiner.toString();
+            int i = 0;
+            if (description != null)
+                msg[i++] = argList + " : " + description;
+            for (CommandBuilder subCommand : subCommands.values())
+                msg[i++] = argList + (subCommand.hasDescription() ? " : " + subCommand.getDescription() : "");
+            return msg;
+        }
+    }
+
+    public CommandBuilder description(final String description)
+    {
+        this.description = description;
+        return this;
+    }
+
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public boolean hasDescription()
+    {
+        return description != null;
+    }
+
     public void execute(CommandSender sender, List<String> args)
     {
         execute(sender, new CommandEnvironment(), args);
@@ -44,16 +103,25 @@ public class CommandBuilder {
     public void execute(CommandSender sender, CommandEnvironment env, List<String> args)
     {
         if (args.size() < arguments.size())
+        {
+            sender.sendMessage(help(sender, env));
             return;
+        }
         if (!optionalArguments.isEmpty() && args.size() > arguments.size() + optionalArguments.size())
+        {
+            sender.sendMessage(help(sender, env));
             return;
+        }
 
         // Parse mandatory arguments
         int i;
         for (i = 0; i < arguments.size() ; i++)
         {
             if (!parseArgument(env, arguments.get(i), args.get(i), sender))
+            {
+                sender.sendMessage(help(sender, env));
                 return;
+            }
         }
 
         // Parse optional arguments
@@ -62,7 +130,10 @@ public class CommandBuilder {
             for (i = 0; i + arguments.size() < args.size() && i < optionalArguments.size(); i++)
             {
                 if (!parseArgument(env, optionalArguments.get(i), args.get(i + arguments.size()), sender))
+                {
+                    sender.sendMessage(help(sender, env));
                     return;
+                }
             }
             // Default values
             for (; i < optionalArguments.size(); i++)
@@ -105,9 +176,9 @@ public class CommandBuilder {
         return true;
     }
 
-    public CommandBuilder subCommand(String name, CommandBuilder subCommand)
+    public CommandBuilder subCommand(CommandBuilder subCommand)
     {
-        subCommands.put(name, subCommand);
+        subCommands.put(subCommand.name, subCommand);
         return this;
     }
 }
