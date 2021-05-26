@@ -9,4 +9,9 @@ public class CommandEnvironment {
     {
         return type.cast(args.get(argName));
     }
+
+    public void set(String argName, Object value)
+    {
+        args.put(argName, value);
+    }
 }

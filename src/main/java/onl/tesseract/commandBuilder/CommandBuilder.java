@@ -2,7 +2,10 @@ package onl.tesseract.commandBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.util.Consumer;
 
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
@@ -20,12 +23,31 @@ public class CommandBuilder {
         return this;
     }
 
-    public void execute(List<String> args)
+    public void execute(CommandSender sender, List<String> args)
     {
         CommandEnvironment env = new CommandEnvironment();
         for (int i = 0; i < args.size(); i++)
         {
-            arguments.get(i).
+            Object parsed;
+            try
+            {
+                parsed = arguments.get(i).supplier.apply(args.get(i));
+            }
+            catch (Exception e)
+            {
+                if (arguments.get(i).hasError(e.getClass()))
+                    sender.sendMessage(ChatColor.RED + arguments.get(i).onError(e.getClass()));
+                else
+                {
+                    sender.sendMessage(ChatColor.RED + "Une erreur inattendue est survenue pendant l'execution de cette commande. Contactez un administrateur pour obtenir de l'aide.");
+                    System.err.println("Error while executing command");
+                    e.printStackTrace();
+                }
+                return;
+            }
+            env.set(arguments.get(i).name, parsed);
         }
+
+        consumer.accept(env);
     }
 }
