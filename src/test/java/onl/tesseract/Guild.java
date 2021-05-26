@@ -5,6 +5,7 @@ import java.util.Set;
 
 public class Guild {
     public static Set<Guild> guilds = new HashSet<>();
+    public Set<Parcel> parcels = new HashSet<>();
 
     public static Guild forName(String input)
     {

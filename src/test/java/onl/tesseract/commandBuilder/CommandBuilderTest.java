@@ -151,4 +151,31 @@ class CommandBuilderTest {
         getParcelCommand.execute(sender, List.of("inexistent guild", "maison"));
         verify(sender, times(1)).sendMessage(anyString());
     }
+
+    /**
+     * /money {player} {give} {amount}
+     */
+
+    @Test
+    public void subCommand()
+    {
+        TPlayer player = mock(TPlayer.class);
+
+        CommandBuilder moneyGiveCommand = new CommandBuilder();
+        moneyGiveCommand.withArg(new CommandArgument("quantity", Float.class)
+                                         .supplier((input, env) -> Float.parseFloat(input))
+                                         .error(NumberFormatException.class, "Nombre invalide"))
+                        .command(env -> {
+                            env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
+                        });
+        CommandBuilder moneyCommand = new CommandBuilder();
+        moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
+                                     .supplier((input, env) -> player))
+                    .subCommand("give", moneyGiveCommand)
+                    .command(env -> fail());
+
+        moneyCommand.execute(sender, List.of("GabRay", "give", "42"));
+        verify(player, times(1)).giveMoney(42);
+        verify(sender, times(0)).sendMessage(anyString());
+    }
 }
