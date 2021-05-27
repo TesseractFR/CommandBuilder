@@ -34,10 +34,10 @@ class CommandBuilderTest {
         Player test = mock(Player.class);
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", Player.class)
-                             .supplier((input, env) -> test))
+                                     .supplier((input, env) -> test))
                     .command(env -> {
-            env.get("player", Player.class).sendMessage("test");
-        });
+                        env.get("player", Player.class).sendMessage("test");
+                    });
 
         moneyCommand.execute(sender, List.of("GabRay"));
         verify(test, times(1)).sendMessage("test");
@@ -51,10 +51,10 @@ class CommandBuilderTest {
 
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
-                             .supplier((input, env) -> player))
+                                     .supplier((input, env) -> player))
                     .withArg(new CommandArgument("quantity", Float.class)
                                      .supplier((input, env) -> Float.parseFloat(input))
-                             .error(NumberFormatException.class, "Nombre invalide"))
+                                     .error(NumberFormatException.class, "Nombre invalide"))
                     .command(env -> {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                     });
@@ -104,13 +104,13 @@ class CommandBuilderTest {
                                              return g;
                                          }).error(IllegalArgumentException.class, "Ville introuvable"))
                         .withArg(new CommandArgument("parcel", Parcel.class)
-                                        .supplier((input, env) -> {
-                                            Parcel p = Parcel.forName(env.get("guild", Guild.class), input);
-                                            if (p == null)
-                                                throw new IllegalArgumentException();
-                                            return p;
-                                        })
-                                 .error(IllegalArgumentException.class, "Parcelle introuvable"))
+                                         .supplier((input, env) -> {
+                                             Parcel p = Parcel.forName(env.get("guild", Guild.class), input);
+                                             if (p == null)
+                                                 throw new IllegalArgumentException();
+                                             return p;
+                                         })
+                                         .error(IllegalArgumentException.class, "Parcelle introuvable"))
                         .command(env -> {
                             assertEquals("maison", env.get("parcel", Parcel.class).getName());
                         });
@@ -188,9 +188,9 @@ class CommandBuilderTest {
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
                     .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
-                                     .supplier((input, env) -> Float.parseFloat(input))
-                                     .error(NumberFormatException.class, "Nombre invalide")
-                                     .defaultValue(env -> 21))
+                                             .supplier((input, env) -> Float.parseFloat(input))
+                                             .error(NumberFormatException.class, "Nombre invalide")
+                                             .defaultValue(env -> 21))
                     .command(env -> {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                     });
@@ -432,5 +432,65 @@ class CommandBuilderTest {
         cmd.execute(sender, List.of("subCmd"));
         verify(player, times(0)).getName();
         verify(sender, times(1)).sendMessage(anyString());
+    }
+
+    @Test
+    public void tabCompleteArgs()
+    {
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        cmd.withArg(new CommandArgument("foo", String.class)
+                            .supplier((input, env) -> input)
+                            .tabCompletion((sender, env) -> List.of("foo", "fooo")))
+           .withArg(new CommandArgument("bar", String.class)
+                            .supplier((input, env) -> input)
+                            .tabCompletion((sender, env) -> List.of("bar", "baz")))
+           .command(env -> {});
+
+        List<String> list = cmd.tabComplete(sender, new String[]{"fo"});
+        assertEquals(2, list.size());
+        assertEquals("foo", list.get(0));
+        assertEquals("fooo", list.get(1));
+
+        list = cmd.tabComplete(sender, new String[]{"foo", "ba"});
+        assertEquals(2, list.size());
+        assertEquals("bar", list.get(0));
+        assertEquals("baz", list.get(1));
+    }
+
+    @Test
+    public void tabCompleteDependency()
+    {
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        cmd.withArg(new CommandArgument("foo", Integer.class)
+                            .supplier((input, env) -> Integer.parseInt(input))
+                            .tabCompletion((sender, env) -> null))
+           .withArg(new CommandArgument("bar", Integer.class)
+                            .supplier((input, env) -> Integer.parseInt(input))
+                            .tabCompletion((sender, env) -> List.of("" + (env.get("foo", Integer.class) + 1))))
+           .command(env -> {});
+
+        List<String> list = cmd.tabComplete(sender, new String[]{"2", ""});
+        assertEquals(1, list.size());
+        assertEquals("3", list.get(0));
+    }
+
+    @Test
+    public void tabCompleteSubCommands()
+    {
+        CommandBuilder subCmd1 = new CommandBuilder("subCmd1");
+        CommandBuilder subCmd2 = new CommandBuilder("subCmd2");
+
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        cmd.withArg(new CommandArgument("foo", String.class)
+                            .supplier((input, env) -> input)
+                            .tabCompletion((sender, env) -> List.of("foo", "fooo")))
+           .subCommand(subCmd1)
+           .subCommand(subCmd2)
+           .command(env -> fail());
+
+        List<String> list = cmd.tabComplete(sender, new String[]{"foo", "sub"});
+        assertEquals(2, list.size());
+        assertTrue(list.get(0).equals("subCmd1") || list.get(1).equals("subCmd1"));
+        assertTrue(list.get(0).equals("subCmd2") || list.get(1).equals("subCmd2"));
     }
 }

@@ -7,10 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.Consumer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -136,7 +133,7 @@ public class CommandBuilder {
 
         // Parse mandatory arguments
         int i;
-        for (i = 0; i < arguments.size() ; i++)
+        for (i = 0; i < arguments.size(); i++)
         {
             if (!parseArgument(env, arguments.get(i), args.get(i), sender))
             {
@@ -205,5 +202,70 @@ public class CommandBuilder {
     {
         subCommands.put(subCommand.name, subCommand);
         return this;
+    }
+
+    public List<String> tabComplete(CommandSender sender, String[] args)
+    {
+        CommandEnvironment env = new CommandEnvironment();
+        int i = 0;
+        for (; i < args.length - 1; i++)
+        {
+            Optional<CommandArgument> arg = getAnyArgumentAt(i);
+
+            if (arg.isPresent())
+            {
+                try
+                {
+                    env.set(arg.get().name, arg.get().supplier.apply(args[i], env));
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
+            }
+            else if (i == arguments.size()) // sub command names
+            {
+                return subCommands.values().stream()
+                                  .filter(cmd -> cmd.hasPermission(sender))
+                                  .map(CommandBuilder::getName)
+                                  .collect(Collectors.toList());
+            }
+            else
+            {
+                CommandBuilder subCmd = subCommands.get(args[i]);
+                if (subCmd == null)
+                    return null;
+                return subCmd.tabComplete(sender, Arrays.copyOfRange(args, i, args.length));
+            }
+        }
+        // current arg being written
+        final String finalArg = args[i];
+        var arg = getAnyArgumentAt(i);
+
+        if (arg.isPresent())
+        {
+            return arg.get().tabComplete(sender, env).stream()
+                      .filter(s -> s.startsWith(finalArg))
+                      .collect(Collectors.toList());
+        }
+        else if (i == arguments.size()) // sub command names
+        {
+            return subCommands.values().stream()
+                              .filter(cmd -> cmd.hasPermission(sender))
+                              .map(CommandBuilder::getName)
+                              .filter(s -> s.startsWith(finalArg))
+                              .collect(Collectors.toList());
+        }
+        return null;
+    }
+
+    private Optional<CommandArgument> getAnyArgumentAt(int index)
+    {
+        CommandArgument arg = null;
+        if (index < arguments.size())
+            arg = arguments.get(index);
+        else if (index < optionalArguments.size())
+            arg = optionalArguments.get(index - arguments.size());
+        return Optional.ofNullable(arg);
     }
 }

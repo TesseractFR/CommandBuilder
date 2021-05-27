@@ -1,5 +1,8 @@
 package onl.tesseract.commandBuilder;
 
+import org.bukkit.command.CommandSender;
+
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -38,6 +41,13 @@ public class OptionalCommandArgument extends CommandArgument{
     public OptionalCommandArgument error(Class<? extends Throwable> throwable, String message)
     {
         super.error(throwable, message);
+        return this;
+    }
+
+    @Override
+    public OptionalCommandArgument tabCompletion(BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion)
+    {
+        super.tabCompletion(tabCompletion);
         return this;
     }
 }
