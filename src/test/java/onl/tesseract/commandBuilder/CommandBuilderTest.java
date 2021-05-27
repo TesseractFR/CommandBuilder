@@ -7,7 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,9 +34,7 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", Player.class)
                                      .supplier((input, env) -> test))
-                    .command((sender, env) -> {
-                        env.get("player", Player.class).sendMessage("test");
-                    });
+                    .command((sender, env) -> env.get("player", Player.class).sendMessage("test"));
 
         moneyCommand.execute(sender, new String[] {"GabRay"});
         verify(test, times(1)).sendMessage("test");
@@ -55,9 +52,7 @@ class CommandBuilderTest {
                     .withArg(new CommandArgument("quantity", Float.class)
                                      .supplier((input, env) -> Float.parseFloat(input))
                                      .error(NumberFormatException.class, "Nombre invalide"))
-                    .command((sender, env) -> {
-                        env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
-                    });
+                    .command((sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class)));
 
         moneyCommand.execute(sender, new String[] {"GabRay", "42"});
         verify(player, times(1)).giveMoney(42);
@@ -75,9 +70,7 @@ class CommandBuilderTest {
                     .withArg(new CommandArgument("quantity", Float.class)
                                      .supplier((input, env) -> Float.parseFloat(input))
                                      .error(NumberFormatException.class, "Nombre invalide"))
-                    .command((sender, env) -> {
-                        env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
-                    });
+                    .command((sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class)));
 
         moneyCommand.execute(sender, new String[] {"GabRay", "invalid number"});
         verify(player, times(0)).giveMoney(anyFloat());
@@ -111,9 +104,7 @@ class CommandBuilderTest {
                                              return p;
                                          })
                                          .error(IllegalArgumentException.class, "Parcelle introuvable"))
-                        .command((sender, env) -> {
-                            assertEquals("maison", env.get("parcel", Parcel.class).getName());
-                        });
+                        .command((sender, env) -> assertEquals("maison", env.get("parcel", Parcel.class).getName()));
 
         getParcelCommand.execute(sender, new String[] {"Phoenix", "maison"});
         verify(sender, times(0)).sendMessage(anyString());
@@ -165,9 +156,7 @@ class CommandBuilderTest {
         moneyGiveCommand.withArg(new CommandArgument("quantity", Float.class)
                                          .supplier((input, env) -> Float.parseFloat(input))
                                          .error(NumberFormatException.class, "Nombre invalide"))
-                        .command((sender, env) -> {
-                            env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
-                        });
+                        .command((sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class)));
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
@@ -191,9 +180,7 @@ class CommandBuilderTest {
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 21))
-                    .command((sender, env) -> {
-                        env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
-                    });
+                    .command((sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class)));
 
         moneyCommand.execute(sender, new String[] {"GabRay", "42"});
         verify(player, times(1)).giveMoney(42);
@@ -212,9 +199,7 @@ class CommandBuilderTest {
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 21f))
-                    .command((sender, env) -> {
-                        env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
-                    });
+                    .command((sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class)));
 
         moneyCommand.execute(sender, new String[] {"GabRay"});
         verify(player, times(1)).giveMoney(21);
@@ -375,9 +360,7 @@ class CommandBuilderTest {
                                      .supplier((input, env) -> player))
                     .subCommand(giveCommand)
                     .subCommand(takeCommand)
-                    .command((sender, env) -> {
-                        env.get("player", TPlayer.class).getMoney();
-                    });
+                    .command((sender, env) -> env.get("player", TPlayer.class).getMoney());
 
         moneyCommand.execute(sender, new String[] {"GabRay", "give", "42"});
         verify(player, times(1)).giveMoney(42);
