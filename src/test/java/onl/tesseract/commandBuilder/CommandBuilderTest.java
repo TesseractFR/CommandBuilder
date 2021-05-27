@@ -461,6 +461,28 @@ class CommandBuilderTest {
     }
 
     @Test
+    public void tabCompleteArgsNull()
+    {
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        cmd.withArg(new CommandArgument("foo", String.class)
+                            .supplier((input, env) -> input)
+                            .tabCompletion((sender, env) -> List.of("foo", "fooo")))
+           .withArg(new CommandArgument("bar", String.class)
+                            .supplier((input, env) -> input)
+                            .tabCompletion((sender, env) -> null))
+           .command((sender, env) -> {
+           });
+
+        List<String> list = cmd.tabComplete(sender, new String[] {"fo"});
+        assertEquals(2, list.size());
+        assertEquals("foo", list.get(0));
+        assertEquals("fooo", list.get(1));
+
+        list = cmd.tabComplete(sender, new String[] {"foo", "ba"});
+        assertNull(list);
+    }
+
+    @Test
     public void tabCompleteDependency()
     {
         CommandBuilder cmd = new CommandBuilder("cmd");
