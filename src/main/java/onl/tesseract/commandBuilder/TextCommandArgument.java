@@ -37,4 +37,11 @@ public class TextCommandArgument extends CommandArgument{
         super.tabCompletion(tabCompletion);
         return this;
     }
+
+    @Override
+    public TextCommandArgument name(String name)
+    {
+        super.name(name);
+        return this;
+    }
 }

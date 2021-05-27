@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 public class CommandArgument {
-    public final String name;
+    String name;
     public final Class<?> clazz;
     public BiFunction<String, CommandEnvironment, Object> supplier;
     private final Map<Class<? extends Throwable>, String> errors = new HashMap<>();
@@ -24,6 +24,17 @@ public class CommandArgument {
     {
         this.name = name;
         this.clazz = clazz;
+    }
+
+    public CommandArgument name(String name)
+    {
+        this.name = name;
+        return this;
+    }
+
+    public String getName()
+    {
+        return name;
     }
 
     /**

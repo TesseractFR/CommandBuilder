@@ -50,4 +50,11 @@ public class OptionalCommandArgument extends CommandArgument{
         super.tabCompletion(tabCompletion);
         return this;
     }
+
+    @Override
+    public OptionalCommandArgument name(String name)
+    {
+        super.name(name);
+        return this;
+    }
 }
