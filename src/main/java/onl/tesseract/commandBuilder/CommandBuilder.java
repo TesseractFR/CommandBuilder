@@ -200,6 +200,15 @@ public class CommandBuilder {
         int i;
         for (i = 0; i < arguments.size(); i++)
         {
+            if (arguments.get(i) instanceof TextCommandArgument)
+            {
+                String[] textParts = Arrays.copyOfRange(args, i, args.length);
+                StringJoiner text = new StringJoiner(" ");
+                for (String part : textParts)
+                    text.add(part);
+                parseArgument(env, arguments.get(i), text.toString(), sender);
+                break;
+            }
             if (!parseArgument(env, arguments.get(i), args[i], sender))
             {
                 sender.sendMessage(help(sender, env));
