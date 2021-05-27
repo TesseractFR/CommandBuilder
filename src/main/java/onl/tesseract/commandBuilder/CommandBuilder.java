@@ -171,12 +171,12 @@ public class CommandBuilder {
      * @param sender Command sender
      * @param args Sent command arguments
      */
-    public void execute(CommandSender sender, List<String> args)
+    public void execute(CommandSender sender, String[] args)
     {
         execute(sender, new CommandEnvironment(), args);
     }
 
-    public void execute(CommandSender sender, CommandEnvironment env, List<String> args)
+    public void execute(CommandSender sender, CommandEnvironment env, String[] args)
     {
         if (consumer == null)
             throw new IllegalStateException("Missing command function.");
@@ -185,12 +185,12 @@ public class CommandBuilder {
             sender.sendMessage(ChatColor.RED + "Cette commande doit être faite en jeu.");
             return;
         }
-        if (args.size() < arguments.size())
+        if (args.length < arguments.size())
         {
             sender.sendMessage(help(sender, env));
             return;
         }
-        if (!optionalArguments.isEmpty() && args.size() > arguments.size() + optionalArguments.size())
+        if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
         {
             sender.sendMessage(help(sender, env));
             return;
@@ -200,7 +200,7 @@ public class CommandBuilder {
         int i;
         for (i = 0; i < arguments.size(); i++)
         {
-            if (!parseArgument(env, arguments.get(i), args.get(i), sender))
+            if (!parseArgument(env, arguments.get(i), args[i], sender))
             {
                 sender.sendMessage(help(sender, env));
                 return;
@@ -210,9 +210,9 @@ public class CommandBuilder {
         // Parse optional arguments
         if (!optionalArguments.isEmpty())
         {
-            for (i = 0; i + arguments.size() < args.size() && i < optionalArguments.size(); i++)
+            for (i = 0; i + arguments.size() < args.length && i < optionalArguments.size(); i++)
             {
-                if (!parseArgument(env, optionalArguments.get(i), args.get(i + arguments.size()), sender))
+                if (!parseArgument(env, optionalArguments.get(i), args[i + arguments.size()], sender))
                 {
                     sender.sendMessage(help(sender, env));
                     return;
@@ -222,11 +222,11 @@ public class CommandBuilder {
             for (; i < optionalArguments.size(); i++)
                 env.set(optionalArguments.get(i).name, optionalArguments.get(i).getDefault(env));
         }
-        else if (i < args.size() && subCommands.containsKey(args.get(i)))
+        else if (i < args.length && subCommands.containsKey(args[i]))
         {
-            CommandBuilder subCommand = subCommands.get(args.get(i));
+            CommandBuilder subCommand = subCommands.get(args[i]);
             if (subCommand.hasPermission(sender))
-                subCommand.execute(sender, env, args.subList(i + 1, args.size()));
+                subCommand.execute(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
             else
                 sender.sendMessage(ChatColor.RED + "Vous n'avez pas la permission de faire cela.");
             return;

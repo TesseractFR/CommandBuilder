@@ -39,7 +39,7 @@ class CommandBuilderTest {
                         env.get("player", Player.class).sendMessage("test");
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay"));
+        moneyCommand.execute(sender, new String[] {"GabRay"});
         verify(test, times(1)).sendMessage("test");
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -59,7 +59,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "42"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "42"});
         verify(player, times(1)).giveMoney(42);
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -79,7 +79,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "invalid number"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "invalid number"});
         verify(player, times(0)).giveMoney(anyFloat());
         verify(sender, times(1)).sendMessage(anyString());
     }
@@ -115,7 +115,7 @@ class CommandBuilderTest {
                             assertEquals("maison", env.get("parcel", Parcel.class).getName());
                         });
 
-        getParcelCommand.execute(sender, List.of("Phoenix", "maison"));
+        getParcelCommand.execute(sender, new String[]{"Phoenix", "maison"});
         verify(sender, times(0)).sendMessage(anyString());
     }
 
@@ -148,7 +148,7 @@ class CommandBuilderTest {
                                          .error(IllegalArgumentException.class, "Parcelle introuvable"))
                         .command((sender, env) -> fail());
 
-        getParcelCommand.execute(sender, List.of("inexistent guild", "maison"));
+        getParcelCommand.execute(sender, new String[]{"inexistent guild", "maison"});
         verify(sender, times(1)).sendMessage(anyString());
     }
 
@@ -174,7 +174,7 @@ class CommandBuilderTest {
                     .subCommand(moneyGiveCommand)
                     .command((sender, env) -> fail());
 
-        moneyCommand.execute(sender, List.of("GabRay", "give", "42"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "give", "42"});
         verify(sender, times(0)).sendMessage(anyString());
         verify(player, times(1)).giveMoney(42);
     }
@@ -195,7 +195,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "42"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "42"});
         verify(player, times(1)).giveMoney(42);
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -216,7 +216,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay"));
+        moneyCommand.execute(sender, new String[]{"GabRay"});
         verify(player, times(1)).giveMoney(21);
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -247,7 +247,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity3", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "4", "5", "6"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "4", "5", "6"});
         verify(player, times(1)).giveMoney(4);
         verify(player, times(1)).giveMoney(5);
         verify(player, times(1)).giveMoney(6);
@@ -280,7 +280,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity3", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "4"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "4"});
         verify(player, times(1)).giveMoney(4);
         verify(player, times(1)).giveMoney(2);
         verify(player, times(1)).giveMoney(3);
@@ -313,7 +313,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity3", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "4", "5"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "4", "5"});
         verify(player, times(1)).giveMoney(4);
         verify(player, times(1)).giveMoney(5);
         verify(player, times(1)).giveMoney(3);
@@ -346,7 +346,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).giveMoney(env.get("quantity3", Float.class));
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay"));
+        moneyCommand.execute(sender, new String[]{"GabRay"});
         verify(player, times(1)).giveMoney(1);
         verify(player, times(1)).giveMoney(2);
         verify(player, times(1)).giveMoney(3);
@@ -362,12 +362,14 @@ class CommandBuilderTest {
         giveCommand.withArg(new CommandArgument("amount", Float.class)
                                     .supplier((input, env) -> Float.parseFloat(input))
                                     .error(NumberFormatException.class, "Nombre invalide"))
-                   .command((sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("amount", Float.class)));
+                   .command(
+                           (sender, env) -> env.get("player", TPlayer.class).giveMoney(env.get("amount", Float.class)));
         CommandBuilder takeCommand = new CommandBuilder("take");
         takeCommand.withArg(new CommandArgument("amount", Float.class)
                                     .supplier((input, env) -> Float.parseFloat(input))
                                     .error(NumberFormatException.class, "Nombre invalide"))
-                   .command((sender, env) -> env.get("player", TPlayer.class).takeMoney(env.get("amount", Float.class)));
+                   .command(
+                           (sender, env) -> env.get("player", TPlayer.class).takeMoney(env.get("amount", Float.class)));
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
@@ -377,7 +379,7 @@ class CommandBuilderTest {
                         env.get("player", TPlayer.class).getMoney();
                     });
 
-        moneyCommand.execute(sender, List.of("GabRay", "give", "42"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "give", "42"});
         verify(player, times(1)).giveMoney(42);
         verify(player, times(0)).takeMoney(anyFloat());
         verify(player, times(0)).getMoney();
@@ -385,7 +387,7 @@ class CommandBuilderTest {
 
         reset(player, sender);
 
-        moneyCommand.execute(sender, List.of("GabRay", "take", "42"));
+        moneyCommand.execute(sender, new String[]{"GabRay", "take", "42"});
         verify(player, times(0)).giveMoney(42);
         verify(player, times(1)).takeMoney(anyFloat());
         verify(player, times(0)).getMoney();
@@ -393,7 +395,7 @@ class CommandBuilderTest {
 
         reset(player, sender);
 
-        moneyCommand.execute(sender, List.of("GabRay"));
+        moneyCommand.execute(sender, new String[]{"GabRay"});
         verify(player, times(0)).giveMoney(42);
         verify(player, times(0)).takeMoney(anyFloat());
         verify(player, times(1)).getMoney();
@@ -412,7 +414,7 @@ class CommandBuilderTest {
         cmd.subCommand(subCmd)
            .command((sender, env) -> fail());
 
-        cmd.execute(sender, List.of("subCmd"));
+        cmd.execute(sender, new String[]{"subCmd"});
         verify(player, times(1)).getName();
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -429,7 +431,7 @@ class CommandBuilderTest {
         cmd.subCommand(subCmd)
            .command((sender, env) -> fail());
 
-        cmd.execute(sender, List.of("subCmd"));
+        cmd.execute(sender, new String[]{"subCmd"});
         verify(player, times(0)).getName();
         verify(sender, times(1)).sendMessage(anyString());
     }
@@ -444,14 +446,15 @@ class CommandBuilderTest {
            .withArg(new CommandArgument("bar", String.class)
                             .supplier((input, env) -> input)
                             .tabCompletion((sender, env) -> List.of("bar", "baz")))
-           .command((sender, env) -> {});
+           .command((sender, env) -> {
+           });
 
-        List<String> list = cmd.tabComplete(sender, new String[]{"fo"});
+        List<String> list = cmd.tabComplete(sender, new String[] {"fo"});
         assertEquals(2, list.size());
         assertEquals("foo", list.get(0));
         assertEquals("fooo", list.get(1));
 
-        list = cmd.tabComplete(sender, new String[]{"foo", "ba"});
+        list = cmd.tabComplete(sender, new String[] {"foo", "ba"});
         assertEquals(2, list.size());
         assertEquals("bar", list.get(0));
         assertEquals("baz", list.get(1));
@@ -467,9 +470,10 @@ class CommandBuilderTest {
            .withArg(new CommandArgument("bar", Integer.class)
                             .supplier((input, env) -> Integer.parseInt(input))
                             .tabCompletion((sender, env) -> List.of("" + (env.get("foo", Integer.class) + 1))))
-           .command((sender, env) -> {});
+           .command((sender, env) -> {
+           });
 
-        List<String> list = cmd.tabComplete(sender, new String[]{"2", ""});
+        List<String> list = cmd.tabComplete(sender, new String[] {"2", ""});
         assertEquals(1, list.size());
         assertEquals("3", list.get(0));
     }
@@ -488,7 +492,7 @@ class CommandBuilderTest {
            .subCommand(subCmd2)
            .command((sender, env) -> fail());
 
-        List<String> list = cmd.tabComplete(sender, new String[]{"foo", "sub"});
+        List<String> list = cmd.tabComplete(sender, new String[] {"foo", "sub"});
         assertEquals(2, list.size());
         assertTrue(list.get(0).equals("subCmd1") || list.get(1).equals("subCmd1"));
         assertTrue(list.get(0).equals("subCmd2") || list.get(1).equals("subCmd2"));
@@ -498,7 +502,7 @@ class CommandBuilderTest {
     public void malformedMissingCommand()
     {
         CommandBuilder cmd = new CommandBuilder("name");
-        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, List.of()));
+        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, new String[0]));
     }
 
     @Test
@@ -509,7 +513,7 @@ class CommandBuilderTest {
                             .tabCompletion((sender, env) -> List.of("foo", "fooo")))
            .command((sender, env) -> fail());
 
-        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, List.of("foo")));
+        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, new String[]{"foo"}));
     }
 
     @Test
@@ -520,7 +524,7 @@ class CommandBuilderTest {
         cmd.playerOnly(true)
            .command((sender, env) -> sender.getName());
 
-        cmd.execute(senderPlayer, List.of());
+        cmd.execute(senderPlayer, new String[0]);
         verify(senderPlayer, times(1)).getName();
         verify(senderPlayer, times(0)).sendMessage(anyString());
     }
@@ -532,7 +536,7 @@ class CommandBuilderTest {
         cmd.playerOnly(true)
            .command((sender, env) -> sender.getName());
 
-        cmd.execute(sender, List.of());
+        cmd.execute(sender, new String[0]);
         verify(sender, times(0)).getName();
         verify(sender, times(1)).sendMessage(anyString());
     }
