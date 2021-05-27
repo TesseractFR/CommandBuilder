@@ -10,4 +10,9 @@ public class TPlayer {
     {
 
     }
+
+    public float getMoney()
+    {
+        return 0;
+    }
 }
