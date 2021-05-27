@@ -338,7 +338,10 @@ public class CommandBuilder {
 
         if (arg.isPresent())
         {
-            return arg.get().tabComplete(sender, env).stream()
+            List<String> res = arg.get().tabComplete(sender, env);
+            if (res == null)
+                return null;
+            return res.stream()
                       .filter(s -> s.startsWith(finalArg))
                       .collect(Collectors.toList());
         }
