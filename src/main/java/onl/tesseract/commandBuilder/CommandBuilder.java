@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Consumer;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -15,12 +17,13 @@ import java.util.stream.Collectors;
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
     ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
-    Consumer<CommandEnvironment> consumer;
+    BiConsumer<CommandSender, CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
     private BiFunction<CommandSender, CommandEnvironment, String[]> help;
     private String description;
     private final String name;
     private String permission;
+    private boolean playerOnly;
 
     public CommandBuilder(String name)
     {
@@ -60,7 +63,7 @@ public class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder command(Consumer<CommandEnvironment> consumer)
+    public CommandBuilder command(BiConsumer<CommandSender, CommandEnvironment> consumer)
     {
         this.consumer = consumer;
         return this;
@@ -122,6 +125,11 @@ public class CommandBuilder {
     {
         if (consumer == null)
             throw new IllegalStateException("Missing command function.");
+        if (playerOnly && !(sender instanceof Player))
+        {
+            sender.sendMessage(ChatColor.RED + "Cette commande doit être faite en jeu.");
+            return;
+        }
         if (args.size() < arguments.size())
         {
             sender.sendMessage(help(sender, env));
@@ -169,7 +177,7 @@ public class CommandBuilder {
             return;
         }
 
-        consumer.accept(env);
+        consumer.accept(sender, env);
     }
 
     private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
@@ -271,5 +279,11 @@ public class CommandBuilder {
         else if (index < optionalArguments.size())
             arg = optionalArguments.get(index - arguments.size());
         return Optional.ofNullable(arg);
+    }
+
+    public CommandBuilder playerOnly(boolean playerOnly)
+    {
+        this.playerOnly = playerOnly;
+        return this;
     }
 }
