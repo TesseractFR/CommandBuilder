@@ -14,18 +14,39 @@ public class CommandArgument {
     private final Map<Class<? extends Throwable>, String> errors = new HashMap<>();
     private BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion;
 
+    /**
+     * Create a new command argument, to be used with CommandBuilder
+     *
+     * @param name name of the argument.
+     * @param clazz Type
+     */
     public CommandArgument(String name, Class<?> clazz)
     {
         this.name = name;
         this.clazz = clazz;
     }
 
+    /**
+     * Set the parser function
+     *
+     * @param supplier Parser function, taking the raw input and environment, returning the parsed value
+     *
+     * @return this
+     */
     public CommandArgument supplier(BiFunction<String, CommandEnvironment, Object> supplier)
     {
         this.supplier = supplier;
         return this;
     }
 
+    /**
+     * Add an error message to be sent to the CommandSender in case of exception during parsing.
+     *
+     * @param throwable Type of exception
+     * @param message Message
+     *
+     * @return this
+     */
     public CommandArgument error(Class<? extends Throwable> throwable, String message)
     {
         errors.put(throwable, message);
@@ -42,6 +63,13 @@ public class CommandArgument {
         return errors.containsKey(throwable);
     }
 
+    /**
+     * Define the tab completion for this command
+     *
+     * @param tabCompletion Function
+     *
+     * @return this
+     */
     public CommandArgument tabCompletion(BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion)
     {
         this.tabCompletion = tabCompletion;

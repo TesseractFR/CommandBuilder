@@ -6,7 +6,6 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Consumer;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -14,6 +13,10 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+/**
+ * Used to build complex feature-rich commands. Can handle sub commands, arguments, optional
+ * arguments, permissions, help messages, player-ony commands.
+ */
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
     ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
@@ -45,30 +48,69 @@ public class CommandBuilder {
         return permission == null || sender.hasPermission(permission);
     }
 
+    /**
+     * Set a permission to this command. CommandSender who don't have this permission will not be
+     * able to perform this command.
+     *
+     * @param permission Permission to set
+     *
+     * @return this
+     */
     public CommandBuilder permission(final String permission)
     {
         this.permission = permission;
         return this;
     }
 
+    /**
+     * Add an argument to this command.
+     *
+     * @param argument Argument
+     *
+     * @return this
+     */
     public CommandBuilder withArg(CommandArgument argument)
     {
         arguments.add(argument);
         return this;
     }
 
+    /**
+     * Add an optional argument to this command. This is incompatible with the use of subcommands
+     *
+     * @param optArg Optional arg
+     *
+     * @return this
+     */
     public CommandBuilder withOptionalArg(OptionalCommandArgument optArg)
     {
+        if (!subCommands.isEmpty())
+            throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         optionalArguments.add(optArg);
         return this;
     }
 
+    /**
+     * Set the function to be called when the command is performed by a CommandSender
+     *
+     * @param consumer Function
+     *
+     * @return this
+     */
     public CommandBuilder command(BiConsumer<CommandSender, CommandEnvironment> consumer)
     {
         this.consumer = consumer;
         return this;
     }
 
+    /**
+     * Set a custom help message to be sent when the command is wrongly written.
+     * Leaving this at null will set a default help message showing arguments and subcommands.
+     *
+     * @param help Function that returns the help message
+     *
+     * @return this
+     */
     public CommandBuilder help(BiFunction<CommandSender, CommandEnvironment, String[]> help)
     {
         this.help = help;
@@ -100,6 +142,13 @@ public class CommandBuilder {
         }
     }
 
+    /**
+     * Set a description for this command. The description will be shown in default help messages.
+     *
+     * @param description description
+     *
+     * @return this
+     */
     public CommandBuilder description(final String description)
     {
         this.description = description;
@@ -116,6 +165,12 @@ public class CommandBuilder {
         return description != null;
     }
 
+    /**
+     * Executes this command
+     *
+     * @param sender Command sender
+     * @param args Sent command arguments
+     */
     public void execute(CommandSender sender, List<String> args)
     {
         execute(sender, new CommandEnvironment(), args);
@@ -210,12 +265,30 @@ public class CommandBuilder {
         return true;
     }
 
+    /**
+     * Add a subcommand. This is incompatible with the use of optional arguments
+     *
+     * @param subCommand Sub command
+     *
+     * @return this
+     */
     public CommandBuilder subCommand(CommandBuilder subCommand)
     {
+        if (!optionalArguments.isEmpty())
+            throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         subCommands.put(subCommand.name, subCommand);
         return this;
     }
 
+    /**
+     * Returns the tab completion list of this command, based on tab completion list of
+     * arguments and subcommand names.
+     *
+     * @param sender Sender
+     * @param args Sent args
+     *
+     * @return Tab completion list
+     */
     public List<String> tabComplete(CommandSender sender, String[] args)
     {
         CommandEnvironment env = new CommandEnvironment();
@@ -281,6 +354,13 @@ public class CommandBuilder {
         return Optional.ofNullable(arg);
     }
 
+    /**
+     * Set whether this command should only be performed by a player.
+     *
+     * @param playerOnly flag
+     *
+     * @return this
+     */
     public CommandBuilder playerOnly(boolean playerOnly)
     {
         this.playerOnly = playerOnly;
