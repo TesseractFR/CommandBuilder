@@ -120,6 +120,8 @@ public class CommandBuilder {
 
     public void execute(CommandSender sender, CommandEnvironment env, List<String> args)
     {
+        if (consumer == null)
+            throw new IllegalStateException("Missing command function.");
         if (args.size() < arguments.size())
         {
             sender.sendMessage(help(sender, env));
@@ -172,6 +174,8 @@ public class CommandBuilder {
 
     private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
     {
+        if (argument.supplier == null)
+            throw new IllegalStateException("Missing argument parser (supplier).");
         Object parsed;
         try
         {

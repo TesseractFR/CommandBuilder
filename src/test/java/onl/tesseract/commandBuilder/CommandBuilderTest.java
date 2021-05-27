@@ -493,4 +493,22 @@ class CommandBuilderTest {
         assertTrue(list.get(0).equals("subCmd1") || list.get(1).equals("subCmd1"));
         assertTrue(list.get(0).equals("subCmd2") || list.get(1).equals("subCmd2"));
     }
+
+    @Test
+    public void malformedMissingCommand()
+    {
+        CommandBuilder cmd = new CommandBuilder("name");
+        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, List.of()));
+    }
+
+    @Test
+    public void malformedMissingSupplier()
+    {
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        cmd.withArg(new CommandArgument("foo", String.class)
+                            .tabCompletion((sender, env) -> List.of("foo", "fooo")))
+           .command((env) -> fail());
+
+        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, List.of("foo")));
+    }
 }
