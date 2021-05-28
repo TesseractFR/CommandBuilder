@@ -339,7 +339,11 @@ public class CommandBuilder {
      */
     public List<String> tabComplete(CommandSender sender, String[] args)
     {
-        CommandEnvironment env = new CommandEnvironment();
+        return tabComplete(sender, new CommandEnvironment(), args);
+    }
+
+    public List<String> tabComplete(CommandSender sender, CommandEnvironment env, String[] args)
+    {
         int i = 0;
         for (; i < args.length - 1; i++)
         {
@@ -361,7 +365,7 @@ public class CommandBuilder {
                 CommandBuilder subCmd = subCommands.get(args[i]);
                 if (subCmd == null)
                     return null;
-                return subCmd.tabComplete(sender, Arrays.copyOfRange(args, i + 1, args.length));
+                return subCmd.tabComplete(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
             }
         }
         // current arg being written

@@ -580,9 +580,38 @@ class CommandBuilderTest {
         CommandBuilder builder = new CommandBuilder("cmd");
         builder.withOptionalArg(new OptionalCommandArgument("arg", String.class)
                                 .supplier((input, env) -> input))
-               .command((sender, env) -> {
-                   assertNull(env.get("arg", String.class));
-               });
+               .command((sender, env) -> assertNull(env.get("arg", String.class)));
         builder.execute(sender, new String[0]);
+    }
+
+    @Test
+    public void help()
+    {
+        CommandBuilder builder = new CommandBuilder("cmd");
+        builder.withOptionalArg(new OptionalCommandArgument("arg", String.class)
+                                        .supplier((input, env) -> input))
+               .command((sender, env) -> assertNull(env.get("arg", String.class)));
+        builder.help(sender);
+    }
+
+    @Test
+    public void tabCompleteArgInSuperCommand()
+    {
+        CommandBuilder subCmd = new CommandBuilder("subCmd")
+                .withArg(new CommandArgument("subArg", String.class)
+                         .supplier((input, env) -> input)
+                         .tabCompletion((sender, env) -> {
+                             assertNotNull(env.get("arg", String.class));
+                             return null;
+                         }))
+                .command((sender, env) -> fail());
+
+        CommandBuilder cmd = new CommandBuilder("cmd")
+                .withArg(new CommandArgument("arg", String.class)
+                         .supplier((input, env) -> input))
+                .subCommand(subCmd)
+                .command((sender, env) -> fail());
+
+        cmd.tabComplete(sender, new String[]{"foo", "subCmd", ""});
     }
 }
