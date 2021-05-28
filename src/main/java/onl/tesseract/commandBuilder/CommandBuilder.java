@@ -130,7 +130,7 @@ public class CommandBuilder {
         final String[] lines = helpGetAllLines(sender);
         final int totalPageCount = lines.length / 8 + 1;
         if (page < 0 || page >= totalPageCount)
-            throw new IllegalStateException("Page index must be between 0 and pageCount - 1");
+            throw new IllegalArgumentException("Page index must be between 0 and pageCount - 1");
 
         int start = page * 8;
         int end = (page + 1) * 8 + 1;
@@ -138,7 +138,7 @@ public class CommandBuilder {
 
         String[] res = new String[4 + (end - start)];
         Arrays.fill(res, "");
-        res[1] = ChatColor.GRAY + " --> help page " + page + "/" + totalPageCount;
+        res[1] = ChatColor.GRAY + " --> help page " + (page + 1) + "/" + totalPageCount;
         // Copy command usages
         System.arraycopy(lines, start, res, 2, end - start);
         // Decoration
