@@ -128,7 +128,7 @@ public class CommandBuilder {
     public String[] helpGetPage(CommandSender sender, int page)
     {
         final String[] lines = helpGetAllLines(sender);
-        final int totalPageCount = lines.length / 8;
+        final int totalPageCount = lines.length / 8 + 1;
         if (page < 0 || page >= totalPageCount)
             throw new IllegalStateException("Page index must be between 0 and pageCount - 1");
 
