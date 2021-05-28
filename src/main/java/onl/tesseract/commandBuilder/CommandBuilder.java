@@ -9,8 +9,6 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -22,7 +20,6 @@ public class CommandBuilder {
     ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
     BiConsumer<CommandSender, CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
-    private BiFunction<CommandSender, CommandEnvironment, String[]> help;
     private String description;
     private final String name;
     private String permission;
@@ -30,7 +27,32 @@ public class CommandBuilder {
 
     public CommandBuilder(String name)
     {
+        this(name, true);
+    }
+
+    public CommandBuilder(String name, boolean generateDefaultHelp)
+    {
         this.name = name;
+        if (!generateDefaultHelp)
+            return;
+        subCommand(new CommandBuilder("help", false)
+                           .description("Obtenir de l'aide sur une commande.")
+                           .withOptionalArg(new OptionalCommandArgument("page", Integer.class)
+                                                    .supplier((input, env) -> Integer.parseInt(input))
+                                                    .error(NumberFormatException.class, "Nombre invalide"))
+                           .command((sender, env) -> {
+                               Integer page = env.get("page", Integer.class);
+                               if (page == null)
+                                   page = 1;
+                               try
+                               {
+                                   sender.sendMessage(helpGetPage(sender, page - 1));
+                               }
+                               catch (IllegalArgumentException e)
+                               {
+                                   sender.sendMessage(helpGetPage(sender, 0));
+                               }
+                           }));
     }
 
     public String getName()
@@ -84,7 +106,7 @@ public class CommandBuilder {
      */
     public CommandBuilder withOptionalArg(OptionalCommandArgument optArg)
     {
-        if (!subCommands.isEmpty())
+        if (!subCommands.isEmpty() && (subCommands.size() > 1 || !subCommands.containsKey("help")))
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         optionalArguments.add(optArg);
         return this;
@@ -103,40 +125,56 @@ public class CommandBuilder {
         return this;
     }
 
-    /**
-     * Set a custom help message to be sent when the command is wrongly written.
-     * Leaving this at null will set a default help message showing arguments and subcommands.
-     *
-     * @param help Function that returns the help message
-     *
-     * @return this
-     */
-    public CommandBuilder help(BiFunction<CommandSender, CommandEnvironment, String[]> help)
+    public String[] helpGetPage(CommandSender sender, int page)
     {
-        this.help = help;
-        return this;
+        final String[] lines = helpGetAllLines(sender);
+        final int totalPageCount = lines.length / 8;
+        if (page < 0 || page >= totalPageCount)
+            throw new IllegalStateException("Page index must be between 0 and pageCount - 1");
+
+        int start = page * 8;
+        int end = (page + 1) * 8 + 1;
+        end = Math.min(lines.length, end);
+
+        String[] res = new String[4 + (end - start)];
+        res[1] = ChatColor.GRAY + " --> help page " + page + "/" + totalPageCount;
+        System.arraycopy(lines, start, res, 0, end - start);
+        int width = Math.max(20, Arrays.stream(res).map(String::length).max(Comparator.naturalOrder()).get());
+        String boxing = "=".repeat((width - 2 - name.length()) / 2);
+        res[0] = ChatColor.YELLOW + boxing + ChatColor.GOLD + " " + name + " "
+                + ChatColor.YELLOW + boxing;
+        res[res.length - 2] = "";
+        res[res.length - 1] = ChatColor.YELLOW + "\\".repeat((width - 3) / 2) + ChatColor.GOLD + " • "
+                + ChatColor.YELLOW + "/".repeat((width - 3) / 2);
+
+        return res;
     }
 
-    public String[] help(CommandSender sender, CommandEnvironment env)
+    private String[] helpGetAllLines(CommandSender sender)
     {
-        if (help != null)
-            return help.apply(sender, env);
-        else
-        {
-            List<CommandBuilder> validSubCommands = subCommands.values().stream()
-                                                               .filter(cmd -> cmd.hasPermission(sender))
-                                                               .collect(Collectors.toList());
-            String[] msg = new String[validSubCommands.size() + (description == null ? 0 : 1)];
-            String argList = helpGetArgList();
+        List<CommandBuilder> validSubCommands = subCommands.values().stream()
+                                                           .filter(cmd -> cmd.hasPermission(sender))
+                                                           .collect(Collectors.toList());
+        String[] msg = new String[validSubCommands.size() + (description == null ? 0 : 1)];
+        String argList = helpGetArgList();
 
-            int i = 0;
-            if (description != null)
-                msg[i++] = ChatColor.GREEN + name + " " + argList + ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN + description;
-            for (CommandBuilder subCommand : validSubCommands)
-                msg[i++] = ChatColor.GREEN + name + " " + argList + " " + subCommand.getName() + " " + subCommand.helpGetArgList()
-                        + (subCommand.hasDescription() ? ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN + subCommand.getDescription() : "");
-            return msg;
-        }
+        int i = 0;
+        if (description != null)
+            msg[i++] = ChatColor.GREEN + name + " " + argList + ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN
+                    + description;
+        for (CommandBuilder subCommand : validSubCommands)
+            msg[i++] = ChatColor.GREEN + name + " " + argList + " " + subCommand.getName() + " " + subCommand
+                    .helpGetArgList()
+                    + (subCommand.hasDescription() ? ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN + subCommand
+                    .getDescription() : "");
+        return msg;
+    }
+
+    public void help(CommandSender sender)
+    {
+        CommandBuilder helpCommand = subCommands.get("help");
+        if (helpCommand != null)
+            helpCommand.execute(sender, new String[0]);
     }
 
     private String helpGetArgList()
@@ -194,12 +232,12 @@ public class CommandBuilder {
         }
         if (args.length < arguments.size())
         {
-            sender.sendMessage(help(sender, env));
+            help(sender);
             return;
         }
         if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
         {
-            sender.sendMessage(help(sender, env));
+            help(sender);
             return;
         }
 
@@ -217,10 +255,7 @@ public class CommandBuilder {
                 break;
             }
             if (!parseArgument(env, arguments.get(i), args[i], sender))
-            {
-                sender.sendMessage(help(sender, env));
                 return;
-            }
         }
 
         // Parse optional arguments
@@ -229,10 +264,7 @@ public class CommandBuilder {
             for (i = 0; i + arguments.size() < args.length && i < optionalArguments.size(); i++)
             {
                 if (!parseArgument(env, optionalArguments.get(i), args[i + arguments.size()], sender))
-                {
-                    sender.sendMessage(help(sender, env));
                     return;
-                }
             }
             // Default values
             for (; i < optionalArguments.size(); i++)
@@ -263,17 +295,15 @@ public class CommandBuilder {
         catch (Exception e)
         {
             if (argument.hasError(e.getClass()))
+            {
                 sender.sendMessage(ChatColor.RED + argument.onError(e.getClass()));
+            }
             else
             {
-                if (argument.hasError(e.getClass()))
-                    sender.sendMessage(ChatColor.RED + argument.onError(e.getClass()));
-                else
-                {
-                    sender.sendMessage(ChatColor.RED + "Une erreur inattendue est survenue pendant l'execution de cette commande. Contactez un administrateur pour obtenir de l'aide.");
-                    System.err.println("Error while executing command");
-                    e.printStackTrace();
-                }
+                sender.sendMessage(ChatColor.RED
+                                           + "Une erreur inattendue est survenue pendant l'execution de cette commande. Contactez un administrateur pour obtenir de l'aide.");
+                System.err.println("Error while executing command");
+                e.printStackTrace();
             }
             return false;
         }
@@ -290,7 +320,7 @@ public class CommandBuilder {
      */
     public CommandBuilder subCommand(CommandBuilder subCommand)
     {
-        if (!optionalArguments.isEmpty())
+        if (!optionalArguments.isEmpty() && !subCommand.getName().equals("help"))
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         subCommands.put(subCommand.getName(), subCommand);
         return this;

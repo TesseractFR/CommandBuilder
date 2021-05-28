@@ -573,4 +573,16 @@ class CommandBuilderTest {
         assertTrue(list.get(0).equals("foo") || list.get(0).equals("bar"));
         assertTrue(list.get(1).equals("foo") || list.get(1).equals("bar"));
     }
+
+    @Test
+    public void optionalNotGivenNoDefault()
+    {
+        CommandBuilder builder = new CommandBuilder("cmd");
+        builder.withOptionalArg(new OptionalCommandArgument("arg", String.class)
+                                .supplier((input, env) -> input))
+               .command((sender, env) -> {
+                   assertNull(env.get("arg", String.class));
+               });
+        builder.execute(sender, new String[0]);
+    }
 }

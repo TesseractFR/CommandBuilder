@@ -27,7 +27,7 @@ public class OptionalCommandArgument extends CommandArgument{
 
     public Object getDefault(CommandEnvironment env)
     {
-        return def.apply(env);
+        return def == null ? null : def.apply(env);
     }
 
     @Override
