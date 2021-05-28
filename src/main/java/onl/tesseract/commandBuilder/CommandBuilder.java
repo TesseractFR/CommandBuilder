@@ -127,19 +127,26 @@ public class CommandBuilder {
                                                                .filter(cmd -> cmd.hasPermission(sender))
                                                                .collect(Collectors.toList());
             String[] msg = new String[validSubCommands.size() + (description == null ? 0 : 1)];
-            StringJoiner argListJoiner = new StringJoiner(" ", name, "");
-            for (CommandArgument arg : arguments)
-                argListJoiner.add("{" + arg.getName() + "}");
-            for (CommandArgument arg : optionalArguments)
-                argListJoiner.add("[" + arg.getName() + "]");
-            String argList = argListJoiner.toString();
+            String argList = helpGetArgList();
+
             int i = 0;
             if (description != null)
-                msg[i++] = argList + " : " + description;
+                msg[i++] = ChatColor.GREEN + name + " " + argList + ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN + description;
             for (CommandBuilder subCommand : validSubCommands)
-                msg[i++] = argList + (subCommand.hasDescription() ? " : " + subCommand.getDescription() : "");
+                msg[i++] = ChatColor.GREEN + name + " " + argList + " " + subCommand.getName() + " " + subCommand.helpGetArgList()
+                        + (subCommand.hasDescription() ? ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN + subCommand.getDescription() : "");
             return msg;
         }
+    }
+
+    private String helpGetArgList()
+    {
+        StringJoiner argListJoiner = new StringJoiner(" ");
+        for (CommandArgument arg : arguments)
+            argListJoiner.add("{" + arg.getName() + "}");
+        for (CommandArgument arg : optionalArguments)
+            argListJoiner.add("[" + arg.getName() + "]");
+        return argListJoiner.toString();
     }
 
     /**
