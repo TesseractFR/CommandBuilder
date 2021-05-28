@@ -137,9 +137,13 @@ public class CommandBuilder {
         end = Math.min(lines.length, end);
 
         String[] res = new String[4 + (end - start)];
+        Arrays.fill(res, "");
         res[1] = ChatColor.GRAY + " --> help page " + page + "/" + totalPageCount;
+        // Copy command usages
         System.arraycopy(lines, start, res, 0, end - start);
+        // Compute width
         int width = Math.max(20, Arrays.stream(res).map(String::length).max(Comparator.naturalOrder()).get());
+        // Decoration
         String boxing = "=".repeat((width - 2 - name.length()) / 2);
         res[0] = ChatColor.YELLOW + boxing + ChatColor.GOLD + " " + name + " "
                 + ChatColor.YELLOW + boxing;
