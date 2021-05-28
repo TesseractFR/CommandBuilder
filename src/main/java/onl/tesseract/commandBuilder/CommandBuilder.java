@@ -129,9 +129,9 @@ public class CommandBuilder {
             String[] msg = new String[validSubCommands.size() + (description == null ? 0 : 1)];
             StringJoiner argListJoiner = new StringJoiner(" ", name, "");
             for (CommandArgument arg : arguments)
-                argListJoiner.add("{" + arg.name + "}");
+                argListJoiner.add("{" + arg.getName() + "}");
             for (CommandArgument arg : optionalArguments)
-                argListJoiner.add("[" + arg.name + "]");
+                argListJoiner.add("[" + arg.getName() + "]");
             String argList = argListJoiner.toString();
             int i = 0;
             if (description != null)
@@ -229,7 +229,7 @@ public class CommandBuilder {
             }
             // Default values
             for (; i < optionalArguments.size(); i++)
-                env.set(optionalArguments.get(i).name, optionalArguments.get(i).getDefault(env));
+                env.set(optionalArguments.get(i).getName(), optionalArguments.get(i).getDefault(env));
         }
         else if (i < args.length && subCommands.containsKey(args[i]))
         {
@@ -270,7 +270,7 @@ public class CommandBuilder {
             }
             return false;
         }
-        env.set(argument.name, parsed);
+        env.set(argument.getName(), parsed);
         return true;
     }
 
@@ -285,7 +285,7 @@ public class CommandBuilder {
     {
         if (!optionalArguments.isEmpty())
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
-        subCommands.put(subCommand.name, subCommand);
+        subCommands.put(subCommand.getName(), subCommand);
         return this;
     }
 
@@ -310,7 +310,7 @@ public class CommandBuilder {
             {
                 try
                 {
-                    env.set(arg.get().name, arg.get().supplier.apply(args[i], env));
+                    env.set(arg.get().getName(), arg.get().supplier.apply(args[i], env));
                 }
                 catch (Exception e)
                 {

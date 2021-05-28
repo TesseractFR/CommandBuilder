@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 public class CommandArgument {
-    String name;
+    private String name;
     public final Class<?> clazz;
     public BiFunction<String, CommandEnvironment, Object> supplier;
     private final Map<Class<? extends Throwable>, String> errors = new HashMap<>();
