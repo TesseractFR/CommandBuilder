@@ -556,4 +556,21 @@ class CommandBuilderTest {
         cmd.execute(sender, new String[] {"Hello", "world", "!"});
         verify(sender, times(1)).sendMessage("Hello world !");
     }
+
+    @Test
+    public void completionInSubCommand()
+    {
+        CommandBuilder cmd = new CommandBuilder("cmd");
+        CommandBuilder subCmd = new CommandBuilder("subCmd");
+        subCmd.withArg(new CommandArgument("arg", String.class)
+                       .supplier((input, env) -> input)
+                       .tabCompletion((sender, env) -> List.of("foo", "bar")));
+        cmd.subCommand(subCmd)
+           .command((sender, env) -> fail());
+
+        var list = cmd.tabComplete(sender, new String[] {"subCmd", ""});
+        assertEquals(2, list.size());
+        assertTrue(list.get(0).equals("foo") || list.get(0).equals("bar"));
+        assertTrue(list.get(1).equals("foo") || list.get(1).equals("bar"));
+    }
 }

@@ -317,19 +317,12 @@ public class CommandBuilder {
                     return null;
                 }
             }
-            else if (i == arguments.size()) // sub command names
-            {
-                return subCommands.values().stream()
-                                  .filter(cmd -> cmd.hasPermission(sender))
-                                  .map(CommandBuilder::getName)
-                                  .collect(Collectors.toList());
-            }
             else
             {
                 CommandBuilder subCmd = subCommands.get(args[i]);
                 if (subCmd == null)
                     return null;
-                return subCmd.tabComplete(sender, Arrays.copyOfRange(args, i, args.length));
+                return subCmd.tabComplete(sender, Arrays.copyOfRange(args, i + 1, args.length));
             }
         }
         // current arg being written
