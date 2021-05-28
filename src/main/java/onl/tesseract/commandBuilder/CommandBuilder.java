@@ -140,16 +140,14 @@ public class CommandBuilder {
         Arrays.fill(res, "");
         res[1] = ChatColor.GRAY + " --> help page " + page + "/" + totalPageCount;
         // Copy command usages
-        System.arraycopy(lines, start, res, 0, end - start);
-        // Compute width
-        int width = Math.max(20, Arrays.stream(res).map(String::length).max(Comparator.naturalOrder()).get());
+        System.arraycopy(lines, start, res, 2, end - start);
         // Decoration
-        String boxing = "=".repeat((width - 2 - name.length()) / 2);
+        String boxing = "================";
         res[0] = ChatColor.YELLOW + boxing + ChatColor.GOLD + " " + name + " "
                 + ChatColor.YELLOW + boxing;
         res[res.length - 2] = "";
-        res[res.length - 1] = ChatColor.YELLOW + "\\".repeat((width - 3) / 2) + ChatColor.GOLD + " • "
-                + ChatColor.YELLOW + "/".repeat((width - 3) / 2);
+        res[res.length - 1] = ChatColor.YELLOW + "\\".repeat(16) + ChatColor.GOLD + " • "
+                + ChatColor.YELLOW + "/".repeat(16);
 
         return res;
     }
