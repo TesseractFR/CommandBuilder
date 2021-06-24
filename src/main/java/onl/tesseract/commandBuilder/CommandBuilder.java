@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +25,7 @@ public class CommandBuilder {
     private final String name;
     private String permission;
     private boolean playerOnly;
+    private final HashMap<Predicate<CommandSender>, String> predicates = new HashMap<>();
 
     public CommandBuilder(String name)
     {
@@ -232,6 +234,14 @@ public class CommandBuilder {
             sender.sendMessage(ChatColor.RED + "Cette commande doit être faite en jeu.");
             return;
         }
+        for (var predicate : predicates.keySet())
+        {
+            if (!predicate.test(sender))
+            {
+                sender.sendMessage(ChatColor.RED + predicates.get(predicate));
+                return;
+            }
+        }
         if (args.length < arguments.size())
         {
             help(sender);
@@ -344,6 +354,13 @@ public class CommandBuilder {
 
     public List<String> tabComplete(CommandSender sender, CommandEnvironment env, String[] args)
     {
+        for (var predicate : predicates.keySet())
+        {
+            if (!predicate.test(sender))
+            {
+                return List.of();
+            }
+        }
         int i = 0;
         for (; i < args.length - 1; i++)
         {
@@ -412,6 +429,12 @@ public class CommandBuilder {
     public CommandBuilder playerOnly(boolean playerOnly)
     {
         this.playerOnly = playerOnly;
+        return this;
+    }
+
+    public CommandBuilder predicate(Predicate<CommandSender> predicate, String errorMessage)
+    {
+        predicates.put(predicate, errorMessage);
         return this;
     }
 }
