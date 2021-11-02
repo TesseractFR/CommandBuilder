@@ -1,6 +1,7 @@
 package onl.tesseract.commandBuilder;
 
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -25,7 +26,7 @@ public class OptionalCommandArgument extends CommandArgument{
         return this;
     }
 
-    public Object getDefault(CommandEnvironment env)
+    public @Nullable Object getDefault(CommandEnvironment env)
     {
         return def == null ? null : def.apply(env);
     }

@@ -3,6 +3,7 @@ package onl.tesseract.commandBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -349,6 +350,7 @@ public class CommandBuilder {
         return tabComplete(sender, new CommandEnvironment(), args);
     }
 
+    @Nullable
     public List<String> tabComplete(CommandSender sender, CommandEnvironment env, String[] args)
     {
         for (var predicate : predicates.keySet())

@@ -1,6 +1,7 @@
 package onl.tesseract.commandBuilder;
 
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +88,7 @@ public class CommandArgument {
         return this;
     }
 
+    @Nullable
     public List<String> tabComplete(CommandSender sender, CommandEnvironment env)
     {
         return tabCompletion == null ? null : tabCompletion.apply(sender, env);
