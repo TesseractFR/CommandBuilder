@@ -225,8 +225,6 @@ public class CommandBuilder {
 
     public void execute(CommandSender sender, CommandEnvironment env, String[] args)
     {
-        if (consumer == null)
-            throw new IllegalStateException("Missing command function.");
         if (playerOnly && !(sender instanceof Player))
         {
             sender.sendMessage(ChatColor.RED + "Cette commande doit être faite en jeu.");
@@ -290,7 +288,8 @@ public class CommandBuilder {
             return;
         }
 
-        consumer.accept(sender, env);
+        if (consumer != null)
+            consumer.accept(sender, env);
     }
 
     private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
