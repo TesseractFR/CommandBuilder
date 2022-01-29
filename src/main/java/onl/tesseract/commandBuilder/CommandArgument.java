@@ -7,12 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class CommandArgument {
     private String name;
     public final Class<?> clazz;
     public BiFunction<String, CommandEnvironment, Object> supplier;
-    private final Map<Class<? extends Throwable>, String> errors = new HashMap<>();
+    private final Map<Class<? extends Throwable>, Function<String, String>> errors = new HashMap<>();
     private BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion;
 
     /**
@@ -61,13 +62,19 @@ public class CommandArgument {
      */
     public CommandArgument error(Class<? extends Throwable> throwable, String message)
     {
+        errors.put(throwable, any -> message);
+        return this;
+    }
+
+    public CommandArgument error(Class<? extends Throwable> throwable, Function<String, String> message)
+    {
         errors.put(throwable, message);
         return this;
     }
 
-    public String onError(Class<? extends Throwable> throwable)
+    public String onError(Throwable throwable)
     {
-        return errors.get(throwable);
+        return errors.get(throwable.getClass()).apply(throwable.getMessage());
     }
 
     public boolean hasError(Class<? extends Throwable> throwable)

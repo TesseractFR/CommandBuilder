@@ -306,7 +306,7 @@ public class CommandBuilder {
         {
             if (argument.hasError(e.getClass()))
             {
-                sender.sendMessage(ChatColor.RED + argument.onError(e.getClass()));
+                sender.sendMessage(ChatColor.RED + argument.onError(e));
             }
             else
             {
