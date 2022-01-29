@@ -22,6 +22,11 @@ public class CommandEnvironment {
         return type.cast(args.get(argName));
     }
 
+    public <T> T getOrDefault(String argName, Class<T> type, T def)
+    {
+        return type.cast(args.getOrDefault(argName, def));
+    }
+
     public void set(String argName, Object value)
     {
         args.put(argName, value);
