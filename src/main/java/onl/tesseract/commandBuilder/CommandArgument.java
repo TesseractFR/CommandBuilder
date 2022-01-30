@@ -26,6 +26,7 @@ public class CommandArgument {
     {
         this.name = name;
         this.clazz = clazz;
+        error(CommandArgumentException.class, msg -> msg);
     }
 
     public CommandArgument name(String name)
