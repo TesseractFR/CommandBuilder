@@ -220,7 +220,7 @@ public class CommandBuilder {
      */
     public void execute(CommandSender sender, String[] args)
     {
-        execute(sender, new CommandEnvironment(), args);
+        execute(sender, new CommandEnvironment(sender), args);
     }
 
     public void execute(CommandSender sender, CommandEnvironment env, String[] args)
@@ -346,7 +346,7 @@ public class CommandBuilder {
      */
     public List<String> tabComplete(CommandSender sender, String[] args)
     {
-        return tabComplete(sender, new CommandEnvironment(), args);
+        return tabComplete(sender, new CommandEnvironment(sender), args);
     }
 
     @Nullable

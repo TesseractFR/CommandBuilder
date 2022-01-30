@@ -1,12 +1,20 @@
 package onl.tesseract.commandBuilder;
 
+import org.bukkit.command.CommandSender;
+
 import java.util.HashMap;
 
 /**
  * Execution environment of a CommandBuilder. Holds parsed arguments.
  */
 public class CommandEnvironment {
+    final CommandSender sender;
     HashMap<String, Object> args = new HashMap<>();
+
+    public CommandEnvironment(final CommandSender sender)
+    {
+        this.sender = sender;
+    }
 
     /**
      * Get an argument
@@ -30,5 +38,10 @@ public class CommandEnvironment {
     public void set(String argName, Object value)
     {
         args.put(argName, value);
+    }
+
+    public CommandSender getSender()
+    {
+        return sender;
     }
 }
