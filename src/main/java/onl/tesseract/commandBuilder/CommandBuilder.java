@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
     ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
-    BiConsumer<CommandSender, CommandEnvironment> consumer;
+    Consumer<CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
     private String description;
     private final String name;
@@ -40,17 +41,17 @@ public class CommandBuilder {
                            .withOptionalArg(new OptionalCommandArgument("page", Integer.class)
                                                     .supplier((input, env) -> Integer.parseInt(input))
                                                     .error(NumberFormatException.class, "Nombre invalide"))
-                           .command((sender, env) -> {
+                           .command(env -> {
                                Integer page = env.get("page", Integer.class);
                                if (page == null)
                                    page = 1;
                                try
                                {
-                                   sender.sendMessage(helpGetPage(sender, page - 1));
+                                   env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
                                }
                                catch (IllegalArgumentException e)
                                {
-                                   sender.sendMessage(helpGetPage(sender, 0));
+                                   env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
                                }
                            }));
     }
@@ -119,9 +120,19 @@ public class CommandBuilder {
      *
      * @return this
      */
-    public CommandBuilder command(BiConsumer<CommandSender, CommandEnvironment> consumer)
+    public CommandBuilder command(Consumer<CommandEnvironment> consumer)
     {
         this.consumer = consumer;
+        return this;
+    }
+
+    /**
+     * @deprecated In favor of {@link CommandBuilder#command(Consumer)} since the sender is included in the environment
+     */
+    @Deprecated
+    public CommandBuilder command(BiConsumer<CommandSender, CommandEnvironment> consumer)
+    {
+        this.consumer = env -> consumer.accept(env.getSender(), env);
         return this;
     }
 
@@ -289,7 +300,7 @@ public class CommandBuilder {
         }
 
         if (consumer != null)
-            consumer.accept(sender, env);
+            consumer.accept(env);
     }
 
     private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)

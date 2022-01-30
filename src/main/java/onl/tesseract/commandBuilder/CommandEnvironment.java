@@ -1,6 +1,7 @@
 package onl.tesseract.commandBuilder;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 
@@ -43,5 +44,10 @@ public class CommandEnvironment {
     public CommandSender getSender()
     {
         return sender;
+    }
+
+    public Player getSenderAsPlayer()
+    {
+        return (Player) sender;
     }
 }
