@@ -17,6 +17,16 @@ public class TextCommandArgument extends CommandArgument{
         supplier((input, env) -> input);
     }
 
+    /**
+     * Create a new command argument, to be used with CommandBuilder
+     *
+     * @param name name of the argument.
+     */
+    public TextCommandArgument(String name, Class<?> clazz)
+    {
+        super(name, clazz);
+    }
+
     @Override
     public CommandArgument supplier(BiFunction<String, CommandEnvironment, Object> supplier)
     {
