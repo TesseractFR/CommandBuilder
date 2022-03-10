@@ -68,7 +68,7 @@ public class CommandBuilder {
 
     public boolean hasPermission(CommandSender sender)
     {
-        return permission == null || sender.hasPermission(permission);
+        return permission == null || permission.isEmpty() || sender.hasPermission(permission);
     }
 
     /**
@@ -168,11 +168,11 @@ public class CommandBuilder {
         List<CommandBuilder> validSubCommands = subCommands.values().stream()
                                                            .filter(cmd -> cmd.hasPermission(sender))
                                                            .collect(Collectors.toList());
-        String[] msg = new String[validSubCommands.size() + (description == null ? 0 : 1)];
+        String[] msg = new String[validSubCommands.size() + (description == null || description.isEmpty() ? 0 : 1)];
         String argList = helpGetArgList();
 
         int i = 0;
-        if (description != null)
+        if (description != null && !description.isEmpty())
             msg[i++] = ChatColor.GREEN + name + " " + argList + ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN
                     + description;
         for (CommandBuilder subCommand : validSubCommands)
@@ -220,7 +220,7 @@ public class CommandBuilder {
 
     public boolean hasDescription()
     {
-        return description != null;
+        return description != null && !description.isEmpty();
     }
 
     /**
@@ -439,6 +439,11 @@ public class CommandBuilder {
     {
         this.playerOnly = playerOnly;
         return this;
+    }
+
+    public boolean isPlayerOnly()
+    {
+        return playerOnly;
     }
 
     public CommandBuilder predicate(Predicate<CommandSender> predicate, String errorMessage)
