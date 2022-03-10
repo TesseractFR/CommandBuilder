@@ -5,8 +5,7 @@ import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CommandBuilderV2Test {
 
@@ -20,10 +19,52 @@ public class CommandBuilderV2Test {
         assertEquals("A test command", command.builder.getDescription());
         assertTrue(command.builder.isPlayerOnly());
     }
+
+    @Test
+    public void CommandOnCommandBuilderV2ClassWithArgsTest()
+    {
+        NoContentArgsCommand command = new NoContentArgsCommand();
+
+        assertEquals("test", command.builder.getName());
+        assertEquals("test", command.builder.getPermission());
+        assertEquals("A test command", command.builder.getDescription());
+        assertTrue(command.builder.isPlayerOnly());
+
+        assertEquals(1, command.builder.arguments.size());
+        CommandArgument argument = command.builder.arguments.get(0);
+        assertEquals("argTest", argument.getName());
+        assertInstanceOf(StringCommandArgument.class, argument);
+    }
+
+    @Test
+    public void CommandNoContentNoValuesTest()
+    {
+        CommandBuilderV2 command = new NoContentNoAnnotationValuesCommand();
+
+        assertEquals("noContentNoAnnotationValues", command.builder.getName());
+        assertEquals("", command.builder.getPermission());
+        assertEquals("", command.builder.getDescription());
+        assertFalse(command.builder.isPlayerOnly());
+
+        assertEquals(0, command.builder.arguments.size());
+    }
+}
+
+@Command
+class NoContentNoAnnotationValuesCommand extends CommandBuilderV2 {
+
 }
 
 @Command(name = "test", permission = "test", playerOnly = true, description = "A test command")
 class NoContentCommand extends CommandBuilderV2 {
+
+}
+
+@Command(name = "test", permission = "test", playerOnly = true, description = "A test command",
+        args = {
+                @Argument(label = "argTest", clazz = StringCommandArgument.class)
+        })
+class NoContentArgsCommand extends CommandBuilderV2 {
 
 }
 

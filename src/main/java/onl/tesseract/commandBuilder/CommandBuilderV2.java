@@ -83,8 +83,17 @@ final class ClassAnnotationReader {
     {
         String name = commandContext.name();
         return name.isEmpty()
-               ? clazz.getSimpleName()
+               ? readName(clazz.getSimpleName())
                : name;
+    }
+
+    String readName(String className)
+    {
+        if (className.endsWith("Command"))
+            className = className.substring(0, className.lastIndexOf("Command"));
+
+        className = className.substring(0, 1).toLowerCase() + className.substring(1);
+        return className;
     }
 
     String readDescription()
