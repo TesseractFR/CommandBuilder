@@ -82,6 +82,13 @@ public class CommandBuilderV2Test {
         assertEquals("commandClassWithSub", command.builder.getName());
         assertEquals(1, command.builder.getSubCommands().size());
     }
+
+    @Test
+    public void CommandBodyTest()
+    {
+        CommandWithBody commandWithBody = new CommandWithBody();
+        assertNotNull(commandWithBody.builder.consumer);
+    }
 }
 
 @Command
@@ -120,6 +127,17 @@ class CommandClassWithSubCommand extends CommandBuilderV2 {
     @Command
     public void myCommand(@Argument(label = "test") StringCommandArgument arg)
     {}
+}
+
+@Command
+class CommandWithBody extends CommandBuilderV2 {
+    public int count = 0;
+
+    @CommandBody
+    public void command(CommandEnvironment environment)
+    {
+        count++;
+    }
 }
 
 @Command(name = "test", permission = "test", playerOnly = true, description = "A test command")

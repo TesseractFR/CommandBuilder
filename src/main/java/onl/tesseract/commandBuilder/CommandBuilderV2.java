@@ -40,7 +40,9 @@ final class CommandBuilderProvider {
 
     CommandBuilder provideFor(final CommandBuilderV2 commandBuilder)
     {
-        return provide(new ClassAnnotationReader(commandBuilder.getClass()));
+        ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder.getClass());
+        return provide(reader)
+                .command(reader.readCommandBody());
     }
 
     CommandBuilder provideFor(final Method method)

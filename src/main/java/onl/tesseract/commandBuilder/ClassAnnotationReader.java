@@ -1,6 +1,13 @@
 package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Command;
+import onl.tesseract.commandBuilder.annotation.CommandBody;
+import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.function.Consumer;
 
 final class ClassAnnotationReader extends AnnotationReader {
 
@@ -20,5 +27,29 @@ final class ClassAnnotationReader extends AnnotationReader {
         return name.isEmpty()
                ? readName(clazz.getSimpleName())
                : name;
+    }
+
+    @Nullable
+    Consumer<CommandEnvironment> readCommandBody()
+    {
+        for (final Method method : clazz.getMethods())
+        {
+            CommandBody annotation = method.getAnnotation(CommandBody.class);
+            if (annotation == null)
+                continue;
+            if (method.getParameters().length != 1 || !CommandEnvironment.class.isAssignableFrom(method.getParameters()[0].getType()))
+                throw new CommandBuildException("CommandBody should have 1 parameter of type CommandEnvironment");
+            return env -> {
+                try
+                {
+                    method.invoke(env);
+                }
+                catch (IllegalAccessException | InvocationTargetException e)
+                {
+                    e.printStackTrace();
+                }
+            };
+        }
+        return null;
     }
 }
