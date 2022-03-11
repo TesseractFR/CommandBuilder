@@ -25,7 +25,8 @@ public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
                                    @NotNull final String label,
                                    @NotNull final String[] args)
     {
-        return false;
+        builder.execute(sender, args);
+        return true;
     }
 
     @Nullable
@@ -34,7 +35,7 @@ public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
                                             @NotNull final String alias,
                                             @NotNull final String[] args)
     {
-        return null;
+        return builder.tabComplete(sender, args);
     }
 }
 
