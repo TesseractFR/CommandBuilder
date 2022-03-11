@@ -15,10 +15,10 @@ final class ClassAnnotationReader extends AnnotationReader {
 
     private final Class<?> clazz;
 
-    ClassAnnotationReader(final Class<?> clazz)
+    ClassAnnotationReader(final Object instance)
     {
-        super(clazz.getAnnotation(Command.class));
-        this.clazz = clazz;
+        super(instance, instance.getClass().getAnnotation(Command.class));
+        this.clazz = instance.getClass();
         if (commandAnnotation == null)
             throw new IllegalStateException(clazz.getName() + " should be annotated with @Command");
     }
@@ -33,7 +33,7 @@ final class ClassAnnotationReader extends AnnotationReader {
 
     @Nullable
     @Override
-    Consumer<CommandEnvironment> readCommandBody()
+    Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject)
     {
         for (final Method method : clazz.getMethods())
         {
@@ -65,14 +65,22 @@ final class ClassAnnotationReader extends AnnotationReader {
             Command annotation = method.getAnnotation(Command.class);
             if (annotation == null)
                 continue;
-            res.add(new CommandBuilderProvider().provideFor(method));
+            res.add(new CommandBuilderProvider().provideFor(instance, method));
         }
         for (final Class<?> innerClass : clazz.getDeclaredClasses())
         {
             Command annotation = innerClass.getAnnotation(Command.class);
             if (annotation == null)
                 continue;
-            res.add(new CommandBuilderProvider().provideFor(innerClass));
+            try
+            {
+                Object instance = innerClass.getDeclaredConstructor().newInstance();
+                res.add(new CommandBuilderProvider().provideForClass(instance));
+            }
+            catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+            {
+                throw new CommandBuildException(e);
+            }
         }
         // Read external classes
         for (final Class<?> outerClass : commandAnnotation.subCommands())
@@ -80,7 +88,15 @@ final class ClassAnnotationReader extends AnnotationReader {
             Command annotation = outerClass.getAnnotation(Command.class);
             if (annotation == null)
                 continue;
-            res.add(new CommandBuilderProvider().provideFor(outerClass));
+            try
+            {
+                Object instance = outerClass.getDeclaredConstructor().newInstance();
+                res.add(new CommandBuilderProvider().provideForClass(instance));
+            }
+            catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+            {
+                throw new CommandBuildException(e);
+            }
         }
         return res;
     }

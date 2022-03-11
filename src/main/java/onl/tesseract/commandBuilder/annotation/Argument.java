@@ -9,7 +9,7 @@ public @interface Argument {
 
     String label();
 
-    Class<?> clazz() default void.class;
+    Class<?> clazz();
 
     boolean optional() default false;
 }

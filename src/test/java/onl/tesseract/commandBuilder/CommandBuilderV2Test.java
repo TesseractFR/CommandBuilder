@@ -3,7 +3,9 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
+import org.bukkit.command.CommandSender;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
 
@@ -57,7 +59,7 @@ public class CommandBuilderV2Test {
         InnerMethodTestCommand command = new InnerMethodTestCommand();
         Method innerCommand = command.getClass().getMethod("innerCommand");
 
-        CommandBuilder builder = new CommandBuilderProvider().provideFor(innerCommand);
+        CommandBuilder builder = new CommandBuilderProvider().provideFor(null, innerCommand);
         assertEquals("inner", builder.getName());
     }
 
@@ -65,9 +67,9 @@ public class CommandBuilderV2Test {
     public void provideForMethodWithArgsTest() throws NoSuchMethodException
     {
         InnerMethodWithArgsTestCommand command = new InnerMethodWithArgsTestCommand();
-        Method innerCommand = command.getClass().getMethod("innerCommand", StringCommandArgument.class);
+        Method innerCommand = command.getClass().getMethod("innerCommand", String.class);
 
-        CommandBuilder builder = new CommandBuilderProvider().provideFor(innerCommand);
+        CommandBuilder builder = new CommandBuilderProvider().provideFor(null, innerCommand);
         assertEquals("inner", builder.getName());
         assertEquals(1, builder.arguments.size());
         assertEquals("arg", builder.arguments.get(0).getName());
@@ -114,6 +116,16 @@ public class CommandBuilderV2Test {
         assertNotNull(inner);
         assertNotNull(inner.consumer);
     }
+
+    @Test
+    public void CallArgsOnSubCommandTest()
+    {
+        CommandBuilderV2 commandA = new CallArgsOnSubCommand();
+
+        CommandSender sender = Mockito.mock(CommandSender.class);
+        commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
+        Mockito.verify(sender).sendMessage("Hello world!");
+    }
 }
 
 @Command
@@ -142,7 +154,7 @@ class InnerMethodTestCommand {
 
 class InnerMethodWithArgsTestCommand {
     @Command
-    public void innerCommand(@Argument(label = "arg") StringCommandArgument arg)
+    public void innerCommand(@Argument(label = "arg", clazz = StringCommandArgument.class) String arg)
     {}
 }
 
@@ -150,7 +162,7 @@ class InnerMethodWithArgsTestCommand {
 class CommandClassWithSubCommand extends CommandBuilderV2 {
 
     @Command
-    public void myCommand(@Argument(label = "test") StringCommandArgument arg)
+    public void myCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String arg)
     {}
 }
 
@@ -158,7 +170,7 @@ class CommandClassWithSubCommand extends CommandBuilderV2 {
 class CommandClassWithSubCommandAsClass extends CommandBuilderV2 {
 
     @Command
-    class SubCommand {
+    static class SubCommand {
 
     }
 }
@@ -189,4 +201,15 @@ class InnerMethodTestBody extends CommandBuilderV2 {
     @Command
     public void innerCommand()
     {}
+}
+
+@Command
+class CallArgsOnSubCommand extends CommandBuilderV2 {
+
+    @Command
+    public void testCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String testString,
+                            CommandSender sender)
+    {
+        sender.sendMessage(testString);
+    }
 }

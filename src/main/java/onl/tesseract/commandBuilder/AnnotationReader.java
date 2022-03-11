@@ -13,9 +13,11 @@ import java.util.function.Consumer;
 
 abstract class AnnotationReader {
     protected final Command commandAnnotation;
+    protected final Object instance;
 
-    protected AnnotationReader(final Command commandAnnotation)
+    protected AnnotationReader(Object instance, final Command commandAnnotation)
     {
+        this.instance = instance;
         this.commandAnnotation = commandAnnotation;
     }
 
@@ -73,5 +75,10 @@ abstract class AnnotationReader {
     }
 
     @Nullable
-    abstract Consumer<CommandEnvironment> readCommandBody();
+    abstract Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject);
+
+    public Object getInstance()
+    {
+        return instance;
+    }
 }

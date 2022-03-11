@@ -17,7 +17,7 @@ public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
 
     public CommandBuilderV2()
     {
-        builder = new CommandBuilderProvider().provideFor(this.getClass());
+        builder = new CommandBuilderProvider().provideForClass(this);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
 
 final class CommandBuilderProvider {
 
-    CommandBuilder provideFor(final Class<?> commandBuilder)
+    CommandBuilder provideForClass(final Object commandBuilder)
     {
         ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder);
         CommandBuilder command = provide(reader);
@@ -52,9 +52,9 @@ final class CommandBuilderProvider {
         return command;
     }
 
-    CommandBuilder provideFor(final Method method)
+    CommandBuilder provideFor(final Object instance, final Method method)
     {
-        return provide(new MethodAnnotationReader(method));
+        return provide(new MethodAnnotationReader(instance, method));
     }
 
     CommandBuilder provide(AnnotationReader reader)
@@ -63,7 +63,7 @@ final class CommandBuilderProvider {
                 .permission(reader.readPermission())
                 .description(reader.readDescription())
                 .playerOnly(reader.readPlayerOnly())
-                .command(reader.readCommandBody());
+                .command(reader.readCommandBody(reader.getInstance()));
 
         Map<CommandArgument, Boolean> arguments = reader.readArguments();
         arguments.forEach((arg, optional) -> {
