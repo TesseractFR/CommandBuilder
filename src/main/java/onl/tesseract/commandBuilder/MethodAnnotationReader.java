@@ -2,8 +2,8 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
+import onl.tesseract.commandBuilder.exception.CommandBuildException;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
@@ -26,7 +26,7 @@ final class MethodAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    List<CommandArgument> readArguments() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
+    List<CommandArgument> readArguments() throws CommandBuildException
     {
         List<CommandArgument> args = super.readArguments();
 
@@ -39,8 +39,15 @@ final class MethodAnnotationReader extends AnnotationReader {
                              : argAnnotation.clazz();
             String name = argAnnotation.label();
 
-            //noinspection unchecked
-            args.add(instantiateArgument((Class<? extends CommandArgument>) clazz, name));
+            try
+            {
+                //noinspection unchecked
+                args.add(instantiateArgument((Class<? extends CommandArgument>) clazz, name));
+            }
+            catch (Exception e)
+            {
+                throw new CommandBuildException(e);
+            }
         }
         return args;
     }

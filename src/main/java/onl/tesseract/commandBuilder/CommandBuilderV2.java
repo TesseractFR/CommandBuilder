@@ -1,13 +1,11 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -57,18 +55,11 @@ final class CommandBuilderProvider {
                 .description(reader.readDescription())
                 .playerOnly(reader.readPlayerOnly());
 
-        try
+        List<CommandArgument> arguments = reader.readArguments();
+        for (final CommandArgument argument : arguments)
         {
-            List<CommandArgument> arguments = reader.readArguments();
-            for (final CommandArgument argument : arguments)
-            {
-                res.withArg(argument);
-            }
-            return res;
+            res.withArg(argument);
         }
-        catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e)
-        {
-            throw new CommandBuildException(e);
-        }
+        return res;
     }
 }

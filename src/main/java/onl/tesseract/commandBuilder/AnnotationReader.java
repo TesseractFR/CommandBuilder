@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
+import onl.tesseract.commandBuilder.exception.CommandBuildException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -42,16 +43,22 @@ abstract class AnnotationReader {
         return commandAnnotation.playerOnly();
     }
 
-    List<CommandArgument> readArguments() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
+    List<CommandArgument> readArguments() throws CommandBuildException
     {
         Argument[] args = commandAnnotation.args();
         List<CommandArgument> res = new ArrayList<>();
 
         for (Argument argAnnotation : args)
         {
-            @SuppressWarnings("unchecked")
-            CommandArgument commandArgument = instantiateArgument((Class<? extends CommandArgument>) argAnnotation.clazz(), argAnnotation.label());
-            res.add(commandArgument);
+            try
+            {
+                @SuppressWarnings("unchecked")
+                CommandArgument commandArgument = instantiateArgument((Class<? extends CommandArgument>) argAnnotation.clazz(), argAnnotation.label());
+                res.add(commandArgument);
+            }catch (Exception e)
+            {
+                throw new CommandBuildException(e);
+            }
         }
         return res;
     }

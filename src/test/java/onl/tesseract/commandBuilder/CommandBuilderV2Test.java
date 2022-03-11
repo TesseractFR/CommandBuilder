@@ -75,7 +75,7 @@ public class CommandBuilderV2Test {
     }
 
     @Test
-    public void CommandWithSubCommandTest() throws NoSuchMethodException
+    public void CommandWithSubCommandTest()
     {
         CommandBuilderV2 command = new CommandClassWithSubCommand();
 
