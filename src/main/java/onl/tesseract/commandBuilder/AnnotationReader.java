@@ -6,8 +6,8 @@ import onl.tesseract.commandBuilder.exception.CommandBuildException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 abstract class AnnotationReader {
     protected final Command commandAnnotation;
@@ -43,10 +43,10 @@ abstract class AnnotationReader {
         return commandAnnotation.playerOnly();
     }
 
-    List<CommandArgument> readArguments() throws CommandBuildException
+    Map<CommandArgument, Boolean> readArguments() throws CommandBuildException
     {
         Argument[] args = commandAnnotation.args();
-        List<CommandArgument> res = new ArrayList<>();
+        Map<CommandArgument, Boolean> res = new HashMap<>();
 
         for (Argument argAnnotation : args)
         {
@@ -54,7 +54,7 @@ abstract class AnnotationReader {
             {
                 @SuppressWarnings("unchecked")
                 CommandArgument commandArgument = instantiateArgument((Class<? extends CommandArgument>) argAnnotation.clazz(), argAnnotation.label());
-                res.add(commandArgument);
+                res.put(commandArgument, argAnnotation.optional());
             }catch (Exception e)
             {
                 throw new CommandBuildException(e);

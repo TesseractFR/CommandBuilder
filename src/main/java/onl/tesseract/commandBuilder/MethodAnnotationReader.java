@@ -6,7 +6,7 @@ import onl.tesseract.commandBuilder.exception.CommandBuildException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.List;
+import java.util.Map;
 
 final class MethodAnnotationReader extends AnnotationReader {
     private final Method method;
@@ -26,9 +26,9 @@ final class MethodAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    List<CommandArgument> readArguments() throws CommandBuildException
+    Map<CommandArgument, Boolean> readArguments() throws CommandBuildException
     {
-        List<CommandArgument> args = super.readArguments();
+        Map<CommandArgument, Boolean> args = super.readArguments();
 
         Parameter[] parameters = method.getParameters();
         for (Parameter parameter : parameters)
@@ -42,7 +42,7 @@ final class MethodAnnotationReader extends AnnotationReader {
             try
             {
                 //noinspection unchecked
-                args.add(instantiateArgument((Class<? extends CommandArgument>) clazz, name));
+                args.put(instantiateArgument((Class<? extends CommandArgument>) clazz, name), argAnnotation.optional());
             }
             catch (Exception e)
             {

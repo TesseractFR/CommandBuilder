@@ -10,4 +10,6 @@ public @interface Argument {
     String label();
 
     Class<?> clazz() default void.class;
+
+    boolean optional() default false;
 }

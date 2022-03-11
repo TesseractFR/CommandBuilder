@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
 
@@ -62,11 +64,22 @@ final class CommandBuilderProvider {
                 .description(reader.readDescription())
                 .playerOnly(reader.readPlayerOnly());
 
-        List<CommandArgument> arguments = reader.readArguments();
-        for (final CommandArgument argument : arguments)
-        {
-            res.withArg(argument);
-        }
+        Map<CommandArgument, Boolean> arguments = reader.readArguments();
+        arguments.forEach((arg, optional) -> {
+            if (optional)
+            {
+                try
+                {
+                    res.withOptionalArg((OptionalCommandArgument) arg);
+                }
+                catch (ClassCastException e)
+                {
+                    throw new CommandBuildException("Argument set as optional is not an instance of OptionalCommandArgument (" + arg.getName() + ")", e);
+                }
+            }
+            else
+                res.withArg(arg);
+        });
         return res;
     }
 }
