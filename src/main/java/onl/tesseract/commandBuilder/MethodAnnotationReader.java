@@ -4,9 +4,11 @@ import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
+import java.util.function.Consumer;
 
 final class MethodAnnotationReader extends AnnotationReader {
     private final Method method;
@@ -50,5 +52,20 @@ final class MethodAnnotationReader extends AnnotationReader {
             }
         }
         return args;
+    }
+
+    @Override
+    Consumer<CommandEnvironment> readCommandBody()
+    {
+        return env -> {
+            try
+            {
+                method.invoke(env);
+            }
+            catch (IllegalAccessException | InvocationTargetException e)
+            {
+                e.printStackTrace();
+            }
+        };
     }
 }

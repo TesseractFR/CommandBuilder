@@ -32,6 +32,7 @@ final class ClassAnnotationReader extends AnnotationReader {
     }
 
     @Nullable
+    @Override
     Consumer<CommandEnvironment> readCommandBody()
     {
         for (final Method method : clazz.getMethods())

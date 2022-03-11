@@ -104,6 +104,16 @@ public class CommandBuilderV2Test {
         CommandBuilderV2 commandA = new CommandA();
         assertNotNull(commandA.builder.getSubCommands().get("commandB"));
     }
+
+    @Test
+    public void InnerMethodBodyTest()
+    {
+        CommandBuilderV2 commandA = new InnerMethodTestBody();
+
+        CommandBuilder inner = commandA.builder.getSubCommands().get("inner");
+        assertNotNull(inner);
+        assertNotNull(inner.consumer);
+    }
 }
 
 @Command
@@ -172,4 +182,11 @@ class CommandA extends CommandBuilderV2 {
 @Command(name = "commandB")
 class CommandB {
 
+}
+
+@Command
+class InnerMethodTestBody extends CommandBuilderV2 {
+    @Command
+    public void innerCommand()
+    {}
 }

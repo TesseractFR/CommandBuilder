@@ -3,11 +3,13 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 abstract class AnnotationReader {
     protected final Command commandAnnotation;
@@ -69,4 +71,7 @@ abstract class AnnotationReader {
         Constructor<? extends CommandArgument> declaredConstructor = clazz.getDeclaredConstructor(String.class);
         return declaredConstructor.newInstance(name);
     }
+
+    @Nullable
+    abstract Consumer<CommandEnvironment> readCommandBody();
 }

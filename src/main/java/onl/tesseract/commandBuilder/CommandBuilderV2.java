@@ -44,8 +44,7 @@ final class CommandBuilderProvider {
     CommandBuilder provideFor(final Class<?> commandBuilder)
     {
         ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder);
-        CommandBuilder command = provide(reader)
-                .command(reader.readCommandBody());
+        CommandBuilder command = provide(reader);
         for (final CommandBuilder subCommand : reader.readSubCommands())
         {
             command.subCommand(subCommand);
@@ -63,7 +62,8 @@ final class CommandBuilderProvider {
         CommandBuilder res = new CommandBuilder(reader.readName())
                 .permission(reader.readPermission())
                 .description(reader.readDescription())
-                .playerOnly(reader.readPlayerOnly());
+                .playerOnly(reader.readPlayerOnly())
+                .command(reader.readCommandBody());
 
         Map<CommandArgument, Boolean> arguments = reader.readArguments();
         arguments.forEach((arg, optional) -> {
