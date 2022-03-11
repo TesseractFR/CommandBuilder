@@ -7,13 +7,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 final class ClassAnnotationReader extends AnnotationReader {
 
-    private final Class<? extends CommandBuilderV2> clazz;
+    private final Class<?> clazz;
 
-    ClassAnnotationReader(final Class<? extends CommandBuilderV2> clazz)
+    ClassAnnotationReader(final Class<?> clazz)
     {
         super(clazz.getAnnotation(Command.class));
         this.clazz = clazz;
@@ -51,5 +53,26 @@ final class ClassAnnotationReader extends AnnotationReader {
             };
         }
         return null;
+    }
+
+    List<CommandBuilder> readSubCommands()
+    {
+        List<CommandBuilder> res = new ArrayList<>();
+        Method[] methods = clazz.getMethods();
+        for (final Method method : methods)
+        {
+            Command annotation = method.getAnnotation(Command.class);
+            if (annotation == null)
+                continue;
+            res.add(new CommandBuilderProvider().provideFor(method));
+        }
+        for (final Class<?> innerClass : clazz.getDeclaredClasses())
+        {
+            Command annotation = innerClass.getAnnotation(Command.class);
+            if (annotation == null)
+                continue;
+            res.add(new CommandBuilderProvider().provideFor(innerClass));
+        }
+        return res;
     }
 }

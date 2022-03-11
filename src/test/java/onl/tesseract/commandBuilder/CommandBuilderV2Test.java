@@ -80,7 +80,15 @@ public class CommandBuilderV2Test {
         CommandBuilderV2 command = new CommandClassWithSubCommand();
 
         assertEquals("commandClassWithSub", command.builder.getName());
-        assertEquals(1, command.builder.getSubCommands().size());
+        assertNotNull(command.builder.getSubCommands().get("my"));
+    }
+
+    @Test
+    public void CommandWithSubCommandClassTest()
+    {
+        CommandBuilderV2 command = new CommandClassWithSubCommandAsClass();
+
+        assertNotNull(command.builder.getSubCommands().get("sub"));
     }
 
     @Test
@@ -127,6 +135,15 @@ class CommandClassWithSubCommand extends CommandBuilderV2 {
     @Command
     public void myCommand(@Argument(label = "test") StringCommandArgument arg)
     {}
+}
+
+@Command
+class CommandClassWithSubCommandAsClass extends CommandBuilderV2 {
+
+    @Command
+    class SubCommand {
+
+    }
 }
 
 @Command
