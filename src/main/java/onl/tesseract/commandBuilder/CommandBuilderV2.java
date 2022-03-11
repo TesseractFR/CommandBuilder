@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
@@ -44,7 +47,16 @@ final class CommandBuilderProvider {
 
     CommandBuilder provideFor(final CommandBuilderV2 commandBuilder)
     {
-        ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder.getClass());
+        return provide(new ClassAnnotationReader(commandBuilder.getClass()));
+    }
+
+    CommandBuilder provideFor(final Method method)
+    {
+        return provide(new MethodAnnotationReader(method));
+    }
+
+    CommandBuilder provide(AnnotationReader reader)
+    {
         CommandBuilder res = new CommandBuilder(reader.readName())
                 .permission(reader.readPermission())
                 .description(reader.readDescription())
@@ -52,7 +64,7 @@ final class CommandBuilderProvider {
 
         try
         {
-            CommandArgument[] arguments = reader.readArguments();
+            List<CommandArgument> arguments = reader.readArguments();
             for (final CommandArgument argument : arguments)
             {
                 res.withArg(argument);
@@ -66,64 +78,116 @@ final class CommandBuilderProvider {
     }
 }
 
-final class ClassAnnotationReader {
+abstract class AnnotationReader {
+    protected final Command commandAnnotation;
 
-    private final Class<? extends CommandBuilderV2> clazz;
-    private final Command commandContext;
-
-    ClassAnnotationReader(final Class<? extends CommandBuilderV2> clazz)
+    protected AnnotationReader(final Command commandAnnotation)
     {
-        this.clazz = clazz;
-        commandContext = clazz.getAnnotation(Command.class);
-        if (commandContext == null)
-            throw new IllegalStateException(clazz.getName() + " should be annotated with @CommandContext");
+        this.commandAnnotation = commandAnnotation;
     }
 
-    String readName()
-    {
-        String name = commandContext.name();
-        return name.isEmpty()
-               ? readName(clazz.getSimpleName())
-               : name;
-    }
+    abstract String readName();
 
-    String readName(String className)
+    String readName(String originalName)
     {
-        if (className.endsWith("Command"))
-            className = className.substring(0, className.lastIndexOf("Command"));
+        if (originalName.endsWith("Command"))
+            originalName = originalName.substring(0, originalName.lastIndexOf("Command"));
 
-        className = className.substring(0, 1).toLowerCase() + className.substring(1);
-        return className;
+        originalName = originalName.substring(0, 1).toLowerCase() + originalName.substring(1);
+        return originalName;
     }
 
     String readDescription()
     {
-        return commandContext.description();
+        return commandAnnotation.description();
     }
 
     String readPermission()
     {
-        return commandContext.permission();
+        return commandAnnotation.permission();
     }
 
     boolean readPlayerOnly()
     {
-        return commandContext.playerOnly();
+        return commandAnnotation.playerOnly();
     }
 
-    CommandArgument[] readArguments() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
+    List<CommandArgument> readArguments() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
     {
-        Argument[] args = commandContext.args();
-        CommandArgument[] res = new CommandArgument[args.length];
+        Argument[] args = commandAnnotation.args();
+        List<CommandArgument> res = new ArrayList<>();
 
-        for (int i = 0; i < args.length; i++)
+        for (Argument argAnnotation : args)
         {
-            Argument argAnnotation = args[i];
             @SuppressWarnings("unchecked")
-            Constructor<? extends CommandArgument> declaredConstructor = (Constructor<? extends CommandArgument>) argAnnotation.clazz().getDeclaredConstructor(String.class);
-            CommandArgument commandArgument = declaredConstructor.newInstance(argAnnotation.label());
-            res[i] = commandArgument;
+            CommandArgument commandArgument = instantiateArgument((Class<? extends CommandArgument>) argAnnotation.clazz(), argAnnotation.label());
+            res.add(commandArgument);
         }
         return res;
+    }
+
+    protected CommandArgument instantiateArgument(Class<? extends CommandArgument> clazz, String name) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
+    {
+        Constructor<? extends CommandArgument> declaredConstructor = clazz.getDeclaredConstructor(String.class);
+        return declaredConstructor.newInstance(name);
+    }
+}
+
+final class MethodAnnotationReader extends AnnotationReader {
+    private final Method method;
+
+    public MethodAnnotationReader(final Method method)
+    {
+        super(method.getAnnotation(Command.class));
+        this.method = method;
+        if (commandAnnotation == null)
+            throw new IllegalStateException(method.getName() + " method should be annotated with @Command");
+    }
+
+    @Override
+    String readName()
+    {
+        return readName(method.getName());
+    }
+
+    @Override
+    List<CommandArgument> readArguments() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
+    {
+        List<CommandArgument> args = super.readArguments();
+
+        Parameter[] parameters = method.getParameters();
+        for (Parameter parameter : parameters)
+        {
+            Argument argAnnotation = parameter.getAnnotation(Argument.class);
+            Class<?> clazz = argAnnotation.clazz() == void.class
+                             ? parameter.getType()
+                             : argAnnotation.clazz();
+            String name = argAnnotation.label();
+
+            //noinspection unchecked
+            args.add(instantiateArgument((Class<? extends CommandArgument>) clazz, name));
+        }
+        return args;
+    }
+}
+
+final class ClassAnnotationReader extends AnnotationReader {
+
+    private final Class<? extends CommandBuilderV2> clazz;
+
+    ClassAnnotationReader(final Class<? extends CommandBuilderV2> clazz)
+    {
+        super(clazz.getAnnotation(Command.class));
+        this.clazz = clazz;
+        if (commandAnnotation == null)
+            throw new IllegalStateException(clazz.getName() + " should be annotated with @Command");
+    }
+
+    String readName()
+    {
+        String name = commandAnnotation.name();
+        return name.isEmpty()
+               ? readName(clazz.getSimpleName())
+               : name;
     }
 }

@@ -451,4 +451,9 @@ public class CommandBuilder {
         predicates.put(predicate, errorMessage);
         return this;
     }
+
+    Map<String, CommandBuilder> getSubCommands()
+    {
+        return Collections.unmodifiableMap(subCommands);
+    }
 }

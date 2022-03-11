@@ -5,6 +5,8 @@ import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CommandBuilderV2Test {
@@ -48,6 +50,38 @@ public class CommandBuilderV2Test {
 
         assertEquals(0, command.builder.arguments.size());
     }
+
+    @Test
+    public void provideForMethodTest() throws NoSuchMethodException
+    {
+        InnerMethodTestCommand command = new InnerMethodTestCommand();
+        Method innerCommand = command.getClass().getMethod("innerCommand");
+
+        CommandBuilder builder = new CommandBuilderProvider().provideFor(innerCommand);
+        assertEquals("inner", builder.getName());
+    }
+
+    @Test
+    public void provideForMethodWithArgsTest() throws NoSuchMethodException
+    {
+        InnerMethodWithArgsTestCommand command = new InnerMethodWithArgsTestCommand();
+        Method innerCommand = command.getClass().getMethod("innerCommand", StringCommandArgument.class);
+
+        CommandBuilder builder = new CommandBuilderProvider().provideFor(innerCommand);
+        assertEquals("inner", builder.getName());
+        assertEquals(1, builder.arguments.size());
+        assertEquals("arg", builder.arguments.get(0).getName());
+        assertInstanceOf(StringCommandArgument.class, builder.arguments.get(0));
+    }
+
+    @Test
+    public void CommandWithSubCommandTest() throws NoSuchMethodException
+    {
+        CommandBuilderV2 command = new CommandClassWithSubCommand();
+
+        assertEquals("commandClassWithSub", command.builder.getName());
+        assertEquals(1, command.builder.getSubCommands().size());
+    }
 }
 
 @Command
@@ -66,6 +100,26 @@ class NoContentCommand extends CommandBuilderV2 {
         })
 class NoContentArgsCommand extends CommandBuilderV2 {
 
+}
+
+class InnerMethodTestCommand {
+    @Command
+    public void innerCommand()
+    {}
+}
+
+class InnerMethodWithArgsTestCommand {
+    @Command
+    public void innerCommand(@Argument(label = "arg") StringCommandArgument arg)
+    {}
+}
+
+@Command
+class CommandClassWithSubCommand extends CommandBuilderV2 {
+
+    @Command
+    public void myCommand(@Argument(label = "test") StringCommandArgument arg)
+    {}
 }
 
 @Command(name = "test", permission = "test", playerOnly = true, description = "A test command")

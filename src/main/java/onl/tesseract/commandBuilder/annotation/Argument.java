@@ -9,5 +9,5 @@ public @interface Argument {
 
     String label();
 
-    Class<?> clazz();
+    Class<?> clazz() default void.class;
 }
