@@ -73,6 +73,14 @@ final class ClassAnnotationReader extends AnnotationReader {
                 continue;
             res.add(new CommandBuilderProvider().provideFor(innerClass));
         }
+        // Read external classes
+        for (final Class<?> outerClass : commandAnnotation.subCommands())
+        {
+            Command annotation = outerClass.getAnnotation(Command.class);
+            if (annotation == null)
+                continue;
+            res.add(new CommandBuilderProvider().provideFor(outerClass));
+        }
         return res;
     }
 }

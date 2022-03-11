@@ -16,4 +16,6 @@ public @interface Command {
     boolean playerOnly() default false;
 
     Argument[] args() default {};
+
+    Class<?>[] subCommands() default {};
 }

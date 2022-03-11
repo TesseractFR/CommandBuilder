@@ -97,6 +97,13 @@ public class CommandBuilderV2Test {
         CommandWithBody commandWithBody = new CommandWithBody();
         assertNotNull(commandWithBody.builder.consumer);
     }
+
+    @Test
+    public void SubCommandOnExternalClassTest()
+    {
+        CommandBuilderV2 commandA = new CommandA();
+        assertNotNull(commandA.builder.getSubCommands().get("commandB"));
+    }
 }
 
 @Command
@@ -157,25 +164,12 @@ class CommandWithBody extends CommandBuilderV2 {
     }
 }
 
-@Command(name = "test", permission = "test", playerOnly = true, description = "A test command")
-class TestCommand extends CommandBuilderV2 {
+@Command(subCommands = CommandB.class)
+class CommandA extends CommandBuilderV2 {
 
-    @Command(permission = "test.foo", description = "A sub command")
-    public void foo(@Argument(label = "arg", clazz = CommandArgument.class) CommandArgument argument)
-    {
+}
 
-    }
+@Command(name = "commandB")
+class CommandB {
 
-    @Command(permission = "bar", description = "A sub command handled by a class",
-            args = {
-                    @Argument(label = "arg", clazz = CommandArgument.class)
-            })
-    class Bar {
-
-        @CommandBody
-        public void command(CommandEnvironment environment)
-        {
-
-        }
-    }
 }
