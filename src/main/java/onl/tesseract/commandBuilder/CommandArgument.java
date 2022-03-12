@@ -3,7 +3,6 @@ package onl.tesseract.commandBuilder;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -13,7 +12,7 @@ public class CommandArgument {
     private String name;
     public final Class<?> clazz;
     public BiFunction<String, CommandEnvironment, Object> supplier;
-    private final Map<Class<? extends Throwable>, Function<String, String>> errors = new HashMap<>();
+    private final Map<Class<? extends Throwable>, Function<String, String>> errors;
     private BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion;
     private Function<CommandEnvironment, Object> def;
 
@@ -27,9 +26,10 @@ public class CommandArgument {
     {
         this.name = name;
         this.clazz = clazz;
-        error(CommandArgumentException.class, msg -> msg);
         ArgumentAnnotationReader reader = new ArgumentAnnotationReader(this);
         supplier = reader.readParser();
+        errors = reader.readErrorHandlers();
+        error(CommandArgumentException.class, msg -> msg);
     }
 
     protected CommandArgument(String name)

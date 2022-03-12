@@ -1,6 +1,7 @@
 package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Env;
+import onl.tesseract.commandBuilder.annotation.ErrorHandler;
 import onl.tesseract.commandBuilder.annotation.Parser;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandSender;
@@ -10,7 +11,10 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 class ArgumentAnnotationReader {
 
@@ -30,6 +34,7 @@ class ArgumentAnnotationReader {
             Parser annotation = method.getAnnotation(Parser.class);
             if (annotation != null)
             {
+                method.setAccessible(true);
                 return (input, env) -> {
                     Parameter[] parameters = method.getParameters();
                     Object[] objects = new Object[parameters.length];
@@ -64,5 +69,39 @@ class ArgumentAnnotationReader {
             }
         }
         return null;
+    }
+
+    Map<Class<? extends Throwable>, Function<String, String>> readErrorHandlers()
+    {
+        Map<Class<? extends Throwable>, Function<String, String>> res = new HashMap<>();
+        for (final Method method : this.clazz.getDeclaredMethods())
+        {
+            ErrorHandler[] annotations = method.getAnnotationsByType(ErrorHandler.class);
+            if (annotations.length == 0)
+                continue;
+
+            method.setAccessible(true);
+            Parameter[] parameters = method.getParameters();
+            if (parameters.length > 1 || (parameters.length == 1 && parameters[0].getType() != String.class))
+                throw new CommandBuildException("Expected one parameter of type String for error handler " + method.getName());
+            Function<String, String> func = input -> {
+                try
+                {
+                    if (parameters.length == 0)
+                        return String.valueOf(method.invoke(argument));
+                    else
+                        return String.valueOf(method.invoke(argument, input));
+                }
+                catch (IllegalAccessException | InvocationTargetException e)
+                {
+                    throw new CommandBuildException(e);
+                }
+            };
+            for (final ErrorHandler annotation : annotations)
+            {
+                res.put(annotation.value(), func);
+            }
+        }
+        return res;
     }
 }
