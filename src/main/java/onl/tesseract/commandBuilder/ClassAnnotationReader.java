@@ -3,10 +3,13 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -43,9 +46,23 @@ final class ClassAnnotationReader extends AnnotationReader {
             if (method.getParameters().length != 1 || !CommandEnvironment.class.isAssignableFrom(method.getParameters()[0].getType()))
                 throw new CommandBuildException("CommandBody should have 1 parameter of type CommandEnvironment");
             return env -> {
+                Parameter[] parameters = method.getParameters();
+                Object[] objects = new Object[parameters.length];
+
+                for (int i = 0; i < parameters.length; i++)
+                {
+                    Parameter parameter = parameters[i];
+                    if (parameter.getType() == CommandEnvironment.class)
+                        objects[i] = env;
+                    else if (parameter.getType() == CommandSender.class)
+                        objects[i] = env.getSender();
+                    else if (parameter.getType() == Player.class)
+                        objects[i] = env.getSenderAsPlayer();
+                }
+
                 try
                 {
-                    method.invoke(env);
+                    method.invoke(instantiatedObject, objects);
                 }
                 catch (IllegalAccessException | InvocationTargetException e)
                 {

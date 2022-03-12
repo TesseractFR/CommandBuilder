@@ -58,6 +58,11 @@ abstract class AnnotationReader {
             {
                 @SuppressWarnings("unchecked")
                 CommandArgument commandArgument = instantiateArgument((Class<? extends CommandArgument>) argAnnotation.clazz(), argAnnotation.label());
+                if (argAnnotation.optional() && !argAnnotation.def().isEmpty())
+                {
+                    OptionalCommandArgument optionalCommandArgument = (OptionalCommandArgument) commandArgument;
+                    optionalCommandArgument.defaultValue(env -> optionalCommandArgument.supplier.apply(argAnnotation.def(), env));
+                }
                 res.put(commandArgument, argAnnotation.optional());
             }catch (Exception e)
             {

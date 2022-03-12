@@ -12,4 +12,6 @@ public @interface Argument {
     Class<?> clazz();
 
     boolean optional() default false;
+
+    String def() default "";
 }
