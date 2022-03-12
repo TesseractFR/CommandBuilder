@@ -28,6 +28,13 @@ public class CommandArgument {
         this.name = name;
         this.clazz = clazz;
         error(CommandArgumentException.class, msg -> msg);
+        ArgumentAnnotationReader reader = new ArgumentAnnotationReader(this);
+        supplier = reader.readParser();
+    }
+
+    protected CommandArgument(String name)
+    {
+        this(name, void.class);
     }
 
     public CommandArgument name(String name)
