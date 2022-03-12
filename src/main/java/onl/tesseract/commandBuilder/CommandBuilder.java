@@ -301,6 +301,8 @@ public class CommandBuilder {
 
         if (consumer != null)
             consumer.accept(env);
+        else
+            help(sender);
     }
 
     private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
