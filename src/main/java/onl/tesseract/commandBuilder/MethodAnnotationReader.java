@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
+import onl.tesseract.commandBuilder.annotation.Env;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -69,9 +70,15 @@ final class MethodAnnotationReader extends AnnotationReader {
             {
                 Parameter parameter = parameters[i];
                 Argument annotation = parameter.getAnnotation(Argument.class);
+                Env envAnnotation = parameter.getAnnotation(Env.class);
                 if (annotation != null)
                 {
                     Object o = env.get(annotation.label());
+                    objects[i] = o;
+                }
+                else if (envAnnotation != null)
+                {
+                    Object o = env.get(envAnnotation.key(), Object.class);
                     objects[i] = o;
                 }
                 else if (parameter.getType() == CommandEnvironment.class)
