@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
+import onl.tesseract.commandBuilder.annotation.Env;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,13 +39,12 @@ final class ClassAnnotationReader extends AnnotationReader {
     @Override
     Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject)
     {
-        for (final Method method : clazz.getMethods())
+        for (final Method method : clazz.getDeclaredMethods())
         {
             CommandBody annotation = method.getAnnotation(CommandBody.class);
             if (annotation == null)
                 continue;
-            if (method.getParameters().length != 1 || !CommandEnvironment.class.isAssignableFrom(method.getParameters()[0].getType()))
-                throw new CommandBuildException("CommandBody should have 1 parameter of type CommandEnvironment");
+            method.setAccessible(true);
             return env -> {
                 Parameter[] parameters = method.getParameters();
                 Object[] objects = new Object[parameters.length];
@@ -52,7 +52,13 @@ final class ClassAnnotationReader extends AnnotationReader {
                 for (int i = 0; i < parameters.length; i++)
                 {
                     Parameter parameter = parameters[i];
-                    if (parameter.getType() == CommandEnvironment.class)
+                    Env envAnnotation = parameter.getAnnotation(Env.class);
+                    if (envAnnotation != null)
+                    {
+                        Object o = env.get(envAnnotation.key(), Object.class);
+                        objects[i] = o;
+                    }
+                    else if (parameter.getType() == CommandEnvironment.class)
                         objects[i] = env;
                     else if (parameter.getType() == CommandSender.class)
                         objects[i] = env.getSender();
