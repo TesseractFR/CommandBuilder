@@ -115,35 +115,8 @@ class ArgumentAnnotationReader {
             TabCompleter annotation = method.getAnnotation(TabCompleter.class);
             if (annotation != null)
             {
-                method.setAccessible(true);
                 return (sender, env) -> {
-                    Parameter[] parameters = method.getParameters();
-                    Object[] objects = new Object[parameters.length];
-
-                    for (int i = 0; i < parameters.length; i++)
-                    {
-                        Parameter parameter = parameters[i];
-                        Env envAnnotation = parameter.getAnnotation(Env.class);
-                        if (envAnnotation != null)
-                        {
-                            Object o = env.get(envAnnotation.key(), Object.class);
-                            objects[i] = o;
-                        }
-                        else if (parameter.getType() == CommandEnvironment.class)
-                            objects[i] = env;
-                        else if (parameter.getType() == CommandSender.class)
-                            objects[i] = env.getSender();
-                        else if (parameter.getType() == Player.class)
-                            objects[i] = env.getSenderAsPlayer();
-                    }
-                    try
-                    {
-                        return (List<String>) method.invoke(argument, objects);
-                    }
-                    catch (IllegalAccessException | InvocationTargetException e)
-                    {
-                        throw new CommandBuildException(e);
-                    }
+                    return (List<String>) new MethodInvoker(method, argument).invoke(env);
                 };
             }
         }
