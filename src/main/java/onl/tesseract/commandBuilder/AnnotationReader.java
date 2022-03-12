@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -50,7 +50,8 @@ abstract class AnnotationReader {
     Map<CommandArgument, Boolean> readArguments() throws CommandBuildException
     {
         Argument[] args = commandAnnotation.args();
-        Map<CommandArgument, Boolean> res = new HashMap<>();
+        // LinkedHashMap to keep insertion order
+        Map<CommandArgument, Boolean> res = new LinkedHashMap<>();
 
         for (Argument argAnnotation : args)
         {
