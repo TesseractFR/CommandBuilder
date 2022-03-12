@@ -76,12 +76,13 @@ final class ClassAnnotationReader extends AnnotationReader {
     List<CommandBuilder> readSubCommands()
     {
         List<CommandBuilder> res = new ArrayList<>();
-        Method[] methods = clazz.getMethods();
+        Method[] methods = clazz.getDeclaredMethods();
         for (final Method method : methods)
         {
             Command annotation = method.getAnnotation(Command.class);
             if (annotation == null)
                 continue;
+            method.setAccessible(true);
             res.add(new CommandBuilderProvider().provideFor(instance, method));
         }
         for (final Class<?> innerClass : clazz.getDeclaredClasses())
