@@ -30,6 +30,7 @@ public class CommandArgument {
         supplier = reader.readParser();
         errors = reader.readErrorHandlers();
         error(CommandArgumentException.class, msg -> msg);
+        tabCompletion = reader.readCompletion();
     }
 
     protected CommandArgument(String name)
