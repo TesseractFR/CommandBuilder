@@ -503,13 +503,6 @@ class CommandBuilderTest {
     }
 
     @Test
-    public void malformedMissingCommand()
-    {
-        CommandBuilder cmd = new CommandBuilder("name");
-        assertThrows(IllegalStateException.class, () -> cmd.execute(sender, new String[0]));
-    }
-
-    @Test
     public void malformedMissingSupplier()
     {
         CommandBuilder cmd = new CommandBuilder("cmd");
