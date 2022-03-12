@@ -8,8 +8,11 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 final class ClassAnnotationReader extends AnnotationReader {
 
@@ -59,37 +62,34 @@ final class ClassAnnotationReader extends AnnotationReader {
             method.setAccessible(true);
             res.add(new CommandBuilderProvider().provideFor(instance, method));
         }
-        for (final Class<?> innerClass : clazz.getDeclaredClasses())
-        {
-            Command annotation = innerClass.getAnnotation(Command.class);
-            if (annotation == null)
-                continue;
-            try
-            {
-                Object instance = innerClass.getDeclaredConstructor().newInstance();
-                res.add(new CommandBuilderProvider().provideForClass(instance));
-            }
-            catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-            {
-                throw new CommandBuildException(e);
-            }
-        }
+        res.addAll(readClassCommands(clazz.getDeclaredClasses()));
         // Read external classes
-        for (final Class<?> outerClass : commandAnnotation.subCommands())
-        {
-            Command annotation = outerClass.getAnnotation(Command.class);
-            if (annotation == null)
-                continue;
-            try
-            {
-                Object instance = outerClass.getDeclaredConstructor().newInstance();
-                res.add(new CommandBuilderProvider().provideForClass(instance));
-            }
-            catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-            {
-                throw new CommandBuildException(e);
-            }
-        }
+        res.addAll(readClassCommands(commandAnnotation.subCommands()));
         return res;
+    }
+
+    private List<CommandBuilder> readClassCommands(Class<?>[] classes) throws CommandBuildException
+    {
+        return Arrays.stream(classes)
+                     .map(this::readClassCommand)
+                     .filter(Objects::nonNull)
+                     .collect(Collectors.toList());
+    }
+
+    @Nullable
+    private CommandBuilder readClassCommand(final Class<?> clazz) throws CommandBuildException
+    {
+        Command annotation = clazz.getAnnotation(Command.class);
+        if (annotation == null)
+            return null;
+        try
+        {
+            Object instance = clazz.getDeclaredConstructor().newInstance();
+            return new CommandBuilderProvider().provideForClass(instance);
+        }
+        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+        {
+            throw new CommandBuildException(e);
+        }
     }
 }
