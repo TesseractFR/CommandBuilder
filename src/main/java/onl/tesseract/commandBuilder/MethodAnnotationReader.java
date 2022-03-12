@@ -37,9 +37,7 @@ final class MethodAnnotationReader extends AnnotationReader {
             Argument argAnnotation = parameter.getAnnotation(Argument.class);
             if (argAnnotation == null)
                 continue;
-            Class<?> clazz = argAnnotation.clazz() == void.class
-                             ? parameter.getType()
-                             : argAnnotation.clazz();
+            Class<?> clazz = argAnnotation.clazz();
             String name = argAnnotation.label();
 
             try

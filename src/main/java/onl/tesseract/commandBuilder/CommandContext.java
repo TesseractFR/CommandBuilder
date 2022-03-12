@@ -10,11 +10,20 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-public class Command implements CommandExecutor, TabCompleter {
+/**
+ * Class representation of a command that can be performed in-game.
+ * Each implementing class should be annotated with {@link onl.tesseract.commandBuilder.annotation.Command}.
+ * <br/>
+ * Subcommands can be added by annotating methods and inner static classes with {@link onl.tesseract.commandBuilder.annotation.Command}.
+ * <br/>
+ * Use the annotation {@link onl.tesseract.commandBuilder.annotation.CommandBody} on a method to mark it as the method to be called when the command
+ * is performed.
+ */
+public abstract class CommandContext implements CommandExecutor, TabCompleter {
 
     final CommandBuilder builder;
 
-    public Command()
+    public CommandContext()
     {
         builder = new CommandBuilderProvider().provideForClass(this);
     }

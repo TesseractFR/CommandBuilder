@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CommandTest {
+public class CommandContextTest {
 
     @Test
     public void CommandOnCommandBuilderV2ClassTest()
@@ -42,7 +42,7 @@ public class CommandTest {
     @Test
     public void CommandNoContentNoValuesTest()
     {
-        Command command = new NoContentNoAnnotationValuesCommand();
+        CommandContext command = new NoContentNoAnnotationValuesCommand();
 
         assertEquals("noContentNoAnnotationValues", command.builder.getName());
         assertEquals("", command.builder.getPermission());
@@ -78,7 +78,7 @@ public class CommandTest {
     @Test
     public void CommandWithSubCommandTest()
     {
-        Command command = new CommandClassWithSubCommand();
+        CommandContext command = new CommandClassWithSubCommand();
 
         assertEquals("commandClassWithSub", command.builder.getName());
         assertNotNull(command.builder.getSubCommands().get("my"));
@@ -87,7 +87,7 @@ public class CommandTest {
     @Test
     public void CommandWithSubCommandClassTest()
     {
-        Command command = new CommandClassWithSubCommandAsClass();
+        CommandContext command = new CommandClassWithSubCommandAsClass();
 
         assertNotNull(command.builder.getSubCommands().get("sub"));
     }
@@ -102,14 +102,14 @@ public class CommandTest {
     @Test
     public void SubCommandOnExternalClassTest()
     {
-        Command commandA = new CommandA();
+        CommandContext commandA = new CommandA();
         assertNotNull(commandA.builder.getSubCommands().get("commandB"));
     }
 
     @Test
     public void InnerMethodBodyTest()
     {
-        Command commandA = new InnerMethodTestBody();
+        CommandContext commandA = new InnerMethodTestBody();
 
         CommandBuilder inner = commandA.builder.getSubCommands().get("inner");
         assertNotNull(inner);
@@ -119,7 +119,7 @@ public class CommandTest {
     @Test
     public void CallArgsOnSubCommandTest()
     {
-        Command commandA = new CallArgsOnSubCommand();
+        CommandContext commandA = new CallArgsOnSubCommand();
 
         CommandSender sender = Mockito.mock(CommandSender.class);
         commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
@@ -128,12 +128,12 @@ public class CommandTest {
 }
 
 @onl.tesseract.commandBuilder.annotation.Command
-class NoContentNoAnnotationValuesCommand extends Command {
+class NoContentNoAnnotationValuesCommand extends CommandContext {
 
 }
 
 @onl.tesseract.commandBuilder.annotation.Command(name = "test", permission = "test", playerOnly = true, description = "A test command")
-class NoContentCommand extends Command {
+class NoContentCommand extends CommandContext {
 
 }
 
@@ -141,7 +141,7 @@ class NoContentCommand extends Command {
         args = {
                 @Argument(label = "argTest", clazz = StringCommandArgument.class)
         })
-class NoContentArgsCommand extends Command {
+class NoContentArgsCommand extends CommandContext {
 
 }
 
@@ -158,7 +158,7 @@ class InnerMethodWithArgsTestCommand {
 }
 
 @onl.tesseract.commandBuilder.annotation.Command
-class CommandClassWithSubCommand extends Command {
+class CommandClassWithSubCommand extends CommandContext {
 
     @onl.tesseract.commandBuilder.annotation.Command
     public void myCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String arg)
@@ -166,7 +166,7 @@ class CommandClassWithSubCommand extends Command {
 }
 
 @onl.tesseract.commandBuilder.annotation.Command
-class CommandClassWithSubCommandAsClass extends Command {
+class CommandClassWithSubCommandAsClass extends CommandContext {
 
     @onl.tesseract.commandBuilder.annotation.Command
     static class SubCommand {
@@ -175,7 +175,7 @@ class CommandClassWithSubCommandAsClass extends Command {
 }
 
 @onl.tesseract.commandBuilder.annotation.Command
-class CommandWithBody extends Command {
+class CommandWithBody extends CommandContext {
     public int count = 0;
 
     @CommandBody
@@ -186,7 +186,7 @@ class CommandWithBody extends Command {
 }
 
 @onl.tesseract.commandBuilder.annotation.Command(subCommands = CommandB.class)
-class CommandA extends Command {
+class CommandA extends CommandContext {
 
 }
 
@@ -196,14 +196,14 @@ class CommandB {
 }
 
 @onl.tesseract.commandBuilder.annotation.Command
-class InnerMethodTestBody extends Command {
+class InnerMethodTestBody extends CommandContext {
     @onl.tesseract.commandBuilder.annotation.Command
     public void innerCommand()
     {}
 }
 
 @onl.tesseract.commandBuilder.annotation.Command
-class CallArgsOnSubCommand extends Command {
+class CallArgsOnSubCommand extends CommandContext {
 
     @onl.tesseract.commandBuilder.annotation.Command
     public void testCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String testString,

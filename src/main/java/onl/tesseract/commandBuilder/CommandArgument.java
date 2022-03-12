@@ -8,10 +8,13 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+/**
+ * Represents a command argument, with a name, a parsing method and a tab completer
+ */
 public class CommandArgument {
     private String name;
     public final Class<?> clazz;
-    public BiFunction<String, CommandEnvironment, Object> supplier;
+    BiFunction<String, CommandEnvironment, Object> supplier;
     private final Map<Class<? extends Throwable>, Function<String, String>> errors;
     private BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion;
     private Function<CommandEnvironment, Object> def;
@@ -116,6 +119,9 @@ public class CommandArgument {
         return def != null;
     }
 
+    /**
+     * Set a default value for optional arguments. If the argument is not given by the player, the default value is used.
+     */
     public CommandArgument defaultValue(Function<CommandEnvironment, Object> def)
     {
         this.def = def;

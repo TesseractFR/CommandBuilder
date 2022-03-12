@@ -12,7 +12,7 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
-public class CommandArgumentAnnotationTest {
+public class CommandContextArgumentAnnotationTest {
 
     @Test
     public void parseFunctionTest()

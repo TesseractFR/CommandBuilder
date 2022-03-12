@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 /**
  * Used to build complex feature-rich commands. Can handle sub commands, arguments, optional
  * arguments, permissions, help messages, player-ony commands.
+ *
+ * To disable default help messages, use {@link CommandBuilder#CommandBuilder(String, boolean)} with false.
+ *
+ * @see CommandContext Annotation-based command builder
  */
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
@@ -26,35 +30,55 @@ public class CommandBuilder {
     private boolean playerOnly;
     private final HashMap<Predicate<CommandSender>, String> predicates = new HashMap<>();
 
+    /**
+     * Start building a new command with auto generated help message
+     *
+     * @param name Command's name
+     *
+     * @see CommandBuilder#CommandBuilder(String, boolean)
+     */
     public CommandBuilder(String name)
     {
         this(name, true);
     }
 
+    /**
+     * Start building a new command
+     *
+     * @param name Name of the command
+     * @param generateDefaultHelp If true, will generate a default help message showing all arguments and subcommands. The help message will be
+     * printed to the player on 3 scenarios :
+     * <ul>
+     *     <li>The player performed the command /command help</li>
+     *     <li>The player performed the command /command, and no default behavior is specified</li>
+     *     <li>The player performed the command with a syntax error (ex: missing required argument)</li>
+     * </ul>
+     * You can register you own help message by override the commande 'help'
+     */
     public CommandBuilder(String name, boolean generateDefaultHelp)
     {
         this.name = name;
         if (!generateDefaultHelp)
             return;
         subCommand(new CommandBuilder("help", false)
-                           .description("Obtenir de l'aide sur une commande.")
-                           .withOptionalArg(new CommandArgument("page", Integer.class)
-                                                    .supplier((input, env) -> Integer.parseInt(input))
-                                                    .defaultValue(env -> 1)
-                                                    .error(NumberFormatException.class, "Nombre invalide"))
-                           .command(env -> {
-                               Integer page = env.get("page", Integer.class);
-                               if (page == null)
-                                   page = 1;
-                               try
-                               {
-                                   env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
-                               }
-                               catch (IllegalArgumentException e)
-                               {
-                                   env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
-                               }
-                           }));
+                .description("Obtenir de l'aide sur une commande.")
+                .withOptionalArg(new CommandArgument("page", Integer.class)
+                        .supplier((input, env) -> Integer.parseInt(input))
+                        .defaultValue(env -> 1)
+                        .error(NumberFormatException.class, "Nombre invalide"))
+                .command(env -> {
+                    Integer page = env.get("page", Integer.class);
+                    if (page == null)
+                        page = 1;
+                    try
+                    {
+                        env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
+                    }
+                }));
     }
 
     public String getName()
@@ -74,7 +98,7 @@ public class CommandBuilder {
 
     /**
      * Set a permission to this command. CommandSender who don't have this permission will not be
-     * able to perform this command.
+     * able to perform this command, and won't see it in help messages and tab completions
      *
      * @param permission Permission to set
      *
@@ -115,7 +139,9 @@ public class CommandBuilder {
     }
 
     /**
-     * Set the function to be called when the command is performed by a CommandSender
+     * Set the function to be called when the command is performed by a CommandSender. If your command only has subcommands, and no direct behavior,
+     * you can set this to null.
+     * If no command is specified, the help message will be printed.
      *
      * @param consumer Function
      *
@@ -184,6 +210,9 @@ public class CommandBuilder {
         return msg;
     }
 
+    /**
+     * Send the help message to the given CommandSender
+     */
     public void help(CommandSender sender)
     {
         CommandBuilder helpCommand = subCommands.get("help");
@@ -239,7 +268,7 @@ public class CommandBuilder {
     {
         if (playerOnly && !(sender instanceof Player))
         {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être faite en jeu.");
+            sender.sendMessage(ChatColor.RED + "This command is player-only");
             return;
         }
         for (var predicate : predicates.keySet())
@@ -296,7 +325,7 @@ public class CommandBuilder {
             if (subCommand.hasPermission(sender))
                 subCommand.execute(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
             else
-                sender.sendMessage(ChatColor.RED + "Vous n'avez pas la permission de faire cela.");
+                sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
             return;
         }
 
@@ -324,7 +353,7 @@ public class CommandBuilder {
             else
             {
                 sender.sendMessage(ChatColor.RED
-                                           + "Une erreur inattendue est survenue pendant l'execution de cette commande. Contactez un administrateur pour obtenir de l'aide.");
+                        + "Une erreur inattendue est survenue pendant l'execution de cette commande. Contactez un administrateur pour obtenir de l'aide.");
                 System.err.println("Error while executing command");
                 e.printStackTrace();
             }
@@ -449,6 +478,12 @@ public class CommandBuilder {
         return playerOnly;
     }
 
+    /**
+     * Add a predicate deciding if a player should be able to perform the command. If not, the error message will be printed, and the command will not
+     * show up in tab completion.
+     *
+     * @return this
+     */
     public CommandBuilder predicate(Predicate<CommandSender> predicate, String errorMessage)
     {
         predicates.put(predicate, errorMessage);
