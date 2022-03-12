@@ -71,7 +71,7 @@ final class MethodAnnotationReader extends AnnotationReader {
                 Argument annotation = parameter.getAnnotation(Argument.class);
                 if (annotation != null)
                 {
-                    Object o = env.get(annotation.label(), parameter.getType());
+                    Object o = env.get(annotation.label());
                     objects[i] = o;
                 }
                 else if (parameter.getType() == CommandEnvironment.class)
