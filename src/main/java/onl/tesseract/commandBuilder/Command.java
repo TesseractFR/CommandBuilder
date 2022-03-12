@@ -10,11 +10,11 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-public class CommandBuilderV2 implements CommandExecutor, TabCompleter {
+public class Command implements CommandExecutor, TabCompleter {
 
     final CommandBuilder builder;
 
-    public CommandBuilderV2()
+    public Command()
     {
         builder = new CommandBuilderProvider().provideForClass(this);
     }
