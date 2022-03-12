@@ -12,9 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.mockito.Mockito.*;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class CommandBuilderTest {
     CommandSender sender;
@@ -176,7 +175,7 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 21))
@@ -195,7 +194,7 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .withOptionalArg(new OptionalCommandArgument("quantity", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 21f))
@@ -214,15 +213,15 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity1", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 1f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity2", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity2", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 2f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity3", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity3", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 3f))
@@ -247,15 +246,15 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity1", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 1f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity2", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity2", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 2f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity3", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity3", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 3f))
@@ -280,15 +279,15 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity1", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 1f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity2", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity2", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 2f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity3", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity3", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 3f))
@@ -313,15 +312,15 @@ class CommandBuilderTest {
         CommandBuilder moneyCommand = new CommandBuilder("money");
         moneyCommand.withArg(new CommandArgument("player", TPlayer.class)
                                      .supplier((input, env) -> player))
-                    .withOptionalArg(new OptionalCommandArgument("quantity1", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity1", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 1f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity2", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity2", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 2f))
-                    .withOptionalArg(new OptionalCommandArgument("quantity3", Float.class)
+                    .withOptionalArg(new CommandArgument("quantity3", Float.class)
                                              .supplier((input, env) -> Float.parseFloat(input))
                                              .error(NumberFormatException.class, "Nombre invalide")
                                              .defaultValue(env -> 3f))
@@ -578,7 +577,7 @@ class CommandBuilderTest {
     public void optionalNotGivenNoDefault()
     {
         CommandBuilder builder = new CommandBuilder("cmd");
-        builder.withOptionalArg(new OptionalCommandArgument("arg", String.class)
+        builder.withOptionalArg(new CommandArgument("arg", String.class)
                                 .supplier((input, env) -> input))
                .command((sender, env) -> assertNull(env.get("arg", String.class)));
         builder.execute(sender, new String[0]);
@@ -588,7 +587,7 @@ class CommandBuilderTest {
     public void help()
     {
         CommandBuilder builder = new CommandBuilder("cmd");
-        builder.withOptionalArg(new OptionalCommandArgument("arg", String.class)
+        builder.withOptionalArg(new CommandArgument("arg", String.class)
                                         .supplier((input, env) -> input))
                .command((sender, env) -> assertNull(env.get("arg", String.class)));
         builder.help(sender);

@@ -15,6 +15,7 @@ public class CommandArgument {
     public BiFunction<String, CommandEnvironment, Object> supplier;
     private final Map<Class<? extends Throwable>, Function<String, String>> errors = new HashMap<>();
     private BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion;
+    private Function<CommandEnvironment, Object> def;
 
     /**
      * Create a new command argument, to be used with CommandBuilder
@@ -100,5 +101,21 @@ public class CommandArgument {
     public List<String> tabComplete(CommandSender sender, CommandEnvironment env)
     {
         return tabCompletion == null ? null : tabCompletion.apply(sender, env);
+    }
+
+    public boolean hasDefault()
+    {
+        return def != null;
+    }
+
+    public CommandArgument defaultValue(Function<CommandEnvironment, Object> def)
+    {
+        this.def = def;
+        return this;
+    }
+
+    public @Nullable Object getDefault(CommandEnvironment env)
+    {
+        return def == null ? null : def.apply(env);
     }
 }

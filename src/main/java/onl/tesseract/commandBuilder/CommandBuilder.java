@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
-    ArrayList<OptionalCommandArgument> optionalArguments = new ArrayList<>();
+    ArrayList<CommandArgument> optionalArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
     private String description;
@@ -38,8 +38,9 @@ public class CommandBuilder {
             return;
         subCommand(new CommandBuilder("help", false)
                            .description("Obtenir de l'aide sur une commande.")
-                           .withOptionalArg(new OptionalCommandArgument("page", Integer.class)
+                           .withOptionalArg(new CommandArgument("page", Integer.class)
                                                     .supplier((input, env) -> Integer.parseInt(input))
+                                                    .defaultValue(env -> 1)
                                                     .error(NumberFormatException.class, "Nombre invalide"))
                            .command(env -> {
                                Integer page = env.get("page", Integer.class);
@@ -105,7 +106,7 @@ public class CommandBuilder {
      *
      * @return this
      */
-    public CommandBuilder withOptionalArg(OptionalCommandArgument optArg)
+    public CommandBuilder withOptionalArg(CommandArgument optArg)
     {
         if (!subCommands.isEmpty() && (subCommands.size() > 1 || !subCommands.containsKey("help")))
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");

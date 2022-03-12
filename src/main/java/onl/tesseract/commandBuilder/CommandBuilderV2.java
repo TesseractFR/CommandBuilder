@@ -1,6 +1,5 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -68,16 +67,7 @@ final class CommandBuilderProvider {
         Map<CommandArgument, Boolean> arguments = reader.readArguments();
         arguments.forEach((arg, optional) -> {
             if (optional)
-            {
-                try
-                {
-                    res.withOptionalArg((OptionalCommandArgument) arg);
-                }
-                catch (ClassCastException e)
-                {
-                    throw new CommandBuildException("Argument set as optional is not an instance of OptionalCommandArgument (" + arg.getName() + ")", e);
-                }
-            }
+                res.withOptionalArg(arg);
             else
                 res.withArg(arg);
         });
