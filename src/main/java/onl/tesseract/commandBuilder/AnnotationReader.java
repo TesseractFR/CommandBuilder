@@ -25,6 +25,11 @@ abstract class AnnotationReader {
 
     abstract String readName();
 
+    String[] readAliases()
+    {
+        return commandAnnotation.alias();
+    }
+
     String readName(String originalName)
     {
         if (originalName.endsWith("Command"))

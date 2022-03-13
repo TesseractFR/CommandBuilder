@@ -24,11 +24,13 @@ public class CommandBuilder {
     ArrayList<CommandArgument> optionalArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
+    private final HashMap<String, CommandBuilder> subCommandsAliases = new HashMap<>();
     private String description;
     private final String name;
     private String permission;
     private boolean playerOnly;
     private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
+    private List<String> aliases = new ArrayList<>();
 
     /**
      * Start building a new command with auto generated help message
@@ -316,9 +318,9 @@ public class CommandBuilder {
             for (; i < optionalArguments.size(); i++)
                 env.set(optionalArguments.get(i).getName(), optionalArguments.get(i).getDefault(env));
         }
-        else if (i < args.length && subCommands.containsKey(args[i]))
+        else if (i < args.length && (subCommands.containsKey(args[i]) || subCommandsAliases.containsKey(args[i])))
         {
-            CommandBuilder subCommand = subCommands.get(args[i]);
+            CommandBuilder subCommand = getSubCommandOrAlias(args[i]);
             if (subCommand.hasPermission(sender))
                 subCommand.execute(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
             else
@@ -330,6 +332,11 @@ public class CommandBuilder {
             consumer.accept(env);
         else
             help(sender);
+    }
+
+    private CommandBuilder getSubCommandOrAlias(String name)
+    {
+        return subCommands.getOrDefault(name, subCommandsAliases.get(name));
     }
 
     private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
@@ -372,6 +379,7 @@ public class CommandBuilder {
         if (!optionalArguments.isEmpty() && !subCommand.getName().equals("help"))
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         subCommands.put(subCommand.getName(), subCommand);
+        subCommand.aliases.forEach(alias -> subCommandsAliases.put(alias, subCommand));
         return this;
     }
 
@@ -410,7 +418,7 @@ public class CommandBuilder {
             }
             else
             {
-                CommandBuilder subCmd = subCommands.get(args[i]);
+                CommandBuilder subCmd = getSubCommandOrAlias(args[i]);
                 if (subCmd == null)
                     return null;
                 return subCmd.tabComplete(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
@@ -433,7 +441,12 @@ public class CommandBuilder {
         {
             return subCommands.values().stream()
                               .filter(cmd -> cmd.hasPermission(sender))
-                              .map(CommandBuilder::getName)
+                              .map(builder -> {
+                                  ArrayList<String> strings = new ArrayList<>(builder.aliases);
+                                  strings.add(builder.getName());
+                                  return strings;
+                              })
+                              .flatMap(Collection::stream)
                               .filter(s -> s.startsWith(finalArg))
                               .collect(Collectors.toList());
         }
@@ -490,6 +503,12 @@ public class CommandBuilder {
     public CommandBuilder predicate(Predicate<CommandEnvironment> predicate)
     {
         predicates.add(predicate);
+        return this;
+    }
+
+    public CommandBuilder alias(String alias)
+    {
+        aliases.add(alias);
         return this;
     }
 

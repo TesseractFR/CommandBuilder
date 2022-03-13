@@ -81,6 +81,8 @@ final class CommandBuilderProvider {
                 res.withArg(arg);
         });
         reader.readPredicates().forEach(res::predicate);
+        for (final String alias : reader.readAliases())
+            res.alias(alias);
         return res;
     }
 }

@@ -23,6 +23,8 @@ public @interface Command {
      */
     String name() default "";
 
+    String[] alias() default {};
+
     String permission() default "";
 
     /**

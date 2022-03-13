@@ -28,7 +28,10 @@ final class MethodAnnotationReader extends AnnotationReader {
     @Override
     String readName()
     {
-        return readName(method.getName());
+        String name = commandAnnotation.name();
+        return name.isEmpty()
+               ? readName(method.getName())
+               : name;
     }
 
     @Override
@@ -99,6 +102,9 @@ final class MethodAnnotationReader extends AnnotationReader {
         {
             map.put(method.getName(), method);
         }
+        Class<?> enclosingClass = clazz.getEnclosingClass();
+        if (enclosingClass != null)
+            map.putAll(getNamedMethods(enclosingClass));
         return map;
     }
 }
