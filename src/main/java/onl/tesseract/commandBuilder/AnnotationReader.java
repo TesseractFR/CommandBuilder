@@ -8,8 +8,10 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 abstract class AnnotationReader {
     protected final Command commandAnnotation;
@@ -81,6 +83,10 @@ abstract class AnnotationReader {
 
     @Nullable
     abstract Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject);
+
+    List<Predicate<CommandEnvironment>> readPredicates() {
+        return List.of();
+    }
 
     public Object getInstance()
     {

@@ -80,6 +80,7 @@ final class CommandBuilderProvider {
             else
                 res.withArg(arg);
         });
+        reader.readPredicates().forEach(res::predicate);
         return res;
     }
 }

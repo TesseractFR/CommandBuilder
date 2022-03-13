@@ -28,7 +28,7 @@ public class CommandBuilder {
     private final String name;
     private String permission;
     private boolean playerOnly;
-    private final HashMap<Predicate<CommandSender>, String> predicates = new HashMap<>();
+    private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
 
     /**
      * Start building a new command with auto generated help message
@@ -271,13 +271,10 @@ public class CommandBuilder {
             sender.sendMessage(ChatColor.RED + "This command is player-only");
             return;
         }
-        for (var predicate : predicates.keySet())
+        for (var predicate : predicates)
         {
-            if (!predicate.test(sender))
-            {
-                sender.sendMessage(ChatColor.RED + predicates.get(predicate));
+            if (!predicate.test(env))
                 return;
-            }
         }
         if (args.length < arguments.size())
         {
@@ -395,13 +392,6 @@ public class CommandBuilder {
     @Nullable
     public List<String> tabComplete(CommandSender sender, CommandEnvironment env, String[] args)
     {
-        for (var predicate : predicates.keySet())
-        {
-            if (!predicate.test(sender))
-            {
-                return List.of();
-            }
-        }
         int i = 0;
         for (; i < args.length - 1; i++)
         {
@@ -484,9 +474,22 @@ public class CommandBuilder {
      *
      * @return this
      */
-    public CommandBuilder predicate(Predicate<CommandSender> predicate, String errorMessage)
+    public CommandBuilder predicate(Predicate<CommandEnvironment> predicate, String errorMessage)
     {
-        predicates.put(predicate, errorMessage);
+        predicates.add(env -> {
+            if (!predicate.test(env))
+            {
+                env.getSender().sendMessage(ChatColor.RED + errorMessage);
+                return false;
+            }
+            return true;
+        });
+        return this;
+    }
+
+    public CommandBuilder predicate(Predicate<CommandEnvironment> predicate)
+    {
+        predicates.add(predicate);
         return this;
     }
 

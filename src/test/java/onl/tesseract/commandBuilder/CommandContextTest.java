@@ -1,7 +1,9 @@
 package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Argument;
+import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
+import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import org.bukkit.command.CommandSender;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -58,7 +60,7 @@ public class CommandContextTest {
         InnerMethodTestCommand command = new InnerMethodTestCommand();
         Method innerCommand = command.getClass().getMethod("innerCommand");
 
-        CommandBuilder builder = new CommandBuilderProvider().provideFor(null, innerCommand);
+        CommandBuilder builder = new CommandBuilderProvider().provideFor(command, innerCommand);
         assertEquals("inner", builder.getName());
     }
 
@@ -68,7 +70,7 @@ public class CommandContextTest {
         InnerMethodWithArgsTestCommand command = new InnerMethodWithArgsTestCommand();
         Method innerCommand = command.getClass().getMethod("innerCommand", String.class);
 
-        CommandBuilder builder = new CommandBuilderProvider().provideFor(null, innerCommand);
+        CommandBuilder builder = new CommandBuilderProvider().provideFor(command, innerCommand);
         assertEquals("inner", builder.getName());
         assertEquals(1, builder.arguments.size());
         assertEquals("arg", builder.arguments.get(0).getName());
@@ -125,19 +127,43 @@ public class CommandContextTest {
         commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
         Mockito.verify(sender).sendMessage("Hello world!");
     }
+
+    @Test
+    public void predicateTest()
+    {
+        CommandContext command = new CommandWithPredicates();
+        CommandSender sender = Mockito.mock(CommandSender.class);
+        Mockito.when(sender.getName()).thenReturn("foo");
+
+        command.builder.execute(sender, new String[] {"test"});
+
+        Mockito.verify(sender).sendMessage("test");
+    }
+
+    @Test
+    public void predicateFailedTest()
+    {
+        CommandContext command = new CommandWithPredicates();
+        CommandSender sender = Mockito.mock(CommandSender.class);
+        Mockito.when(sender.getName()).thenReturn("bar");
+
+        command.builder.execute(sender, new String[] {"test"});
+
+        Mockito.verify(sender, Mockito.times(0)).sendMessage(Mockito.anyString());
+    }
 }
 
-@onl.tesseract.commandBuilder.annotation.Command
+@Command
 class NoContentNoAnnotationValuesCommand extends CommandContext {
 
 }
 
-@onl.tesseract.commandBuilder.annotation.Command(name = "test", permission = "test", playerOnly = true, description = "A test command")
+@Command(name = "test", permission = "test", playerOnly = true, description = "A test command")
 class NoContentCommand extends CommandContext {
 
 }
 
-@onl.tesseract.commandBuilder.annotation.Command(name = "test", permission = "test", playerOnly = true, description = "A test command",
+@Command(name = "test", permission = "test", playerOnly = true, description = "A test command",
         args = {
                 @Argument(label = "argTest", clazz = StringCommandArgument.class)
         })
@@ -146,35 +172,35 @@ class NoContentArgsCommand extends CommandContext {
 }
 
 class InnerMethodTestCommand {
-    @onl.tesseract.commandBuilder.annotation.Command
+    @Command
     public void innerCommand()
     {}
 }
 
 class InnerMethodWithArgsTestCommand {
-    @onl.tesseract.commandBuilder.annotation.Command
+    @Command
     public void innerCommand(@Argument(label = "arg", clazz = StringCommandArgument.class) String arg)
     {}
 }
 
-@onl.tesseract.commandBuilder.annotation.Command
+@Command
 class CommandClassWithSubCommand extends CommandContext {
 
-    @onl.tesseract.commandBuilder.annotation.Command
+    @Command
     public void myCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String arg)
     {}
 }
 
-@onl.tesseract.commandBuilder.annotation.Command
+@Command
 class CommandClassWithSubCommandAsClass extends CommandContext {
 
-    @onl.tesseract.commandBuilder.annotation.Command
+    @Command
     static class SubCommand {
 
     }
 }
 
-@onl.tesseract.commandBuilder.annotation.Command
+@Command
 class CommandWithBody extends CommandContext {
     public int count = 0;
 
@@ -185,30 +211,52 @@ class CommandWithBody extends CommandContext {
     }
 }
 
-@onl.tesseract.commandBuilder.annotation.Command(subCommands = CommandB.class)
+@Command(subCommands = CommandB.class)
 class CommandA extends CommandContext {
 
 }
 
-@onl.tesseract.commandBuilder.annotation.Command(name = "commandB")
+@Command(name = "commandB")
 class CommandB {
 
 }
 
-@onl.tesseract.commandBuilder.annotation.Command
+@Command
 class InnerMethodTestBody extends CommandContext {
-    @onl.tesseract.commandBuilder.annotation.Command
+    @Command
     public void innerCommand()
     {}
 }
 
-@onl.tesseract.commandBuilder.annotation.Command
+@Command
 class CallArgsOnSubCommand extends CommandContext {
 
-    @onl.tesseract.commandBuilder.annotation.Command
+    @Command
     public void testCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String testString,
                             CommandSender sender)
     {
         sender.sendMessage(testString);
+    }
+}
+
+@Command
+class CommandWithPredicates extends CommandContext {
+
+    boolean check(CommandSender sender)
+    {
+        return sender.getName().equals("foo");
+    }
+
+    @CommandPredicate("check")
+    @Command
+    void testCommand(CommandSender sender)
+    {
+        sender.sendMessage("test");
+    }
+
+    @CommandBody
+    void main()
+    {
+
     }
 }
