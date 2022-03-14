@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
+import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 final class ClassAnnotationReader extends AnnotationReader {
@@ -91,5 +93,11 @@ final class ClassAnnotationReader extends AnnotationReader {
         {
             throw new CommandBuildException(e);
         }
+    }
+
+    @Override
+    List<Predicate<CommandEnvironment>> readPredicates()
+    {
+        return readPredicates(clazz.getAnnotationsByType(CommandPredicate.class));
     }
 }

@@ -2,14 +2,14 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
+import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -89,8 +89,41 @@ abstract class AnnotationReader {
     @Nullable
     abstract Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject);
 
-    List<Predicate<CommandEnvironment>> readPredicates() {
-        return List.of();
+    abstract List<Predicate<CommandEnvironment>> readPredicates();
+
+    protected List<Predicate<CommandEnvironment>> readPredicates(CommandPredicate[] annotations)
+    {
+        List<Predicate<CommandEnvironment>> res = new ArrayList<>();
+
+        Map<String, Method> methods = getNamedMethods(instance.getClass());
+        for (final CommandPredicate annotation : annotations)
+        {
+            String predicateName = annotation.value();
+            Method method = methods.get(predicateName);
+            if (method == null)
+                throw new CommandBuildException("No predicate method found with name " + predicateName);
+            if (method.getReturnType() != boolean.class)
+                throw new CommandBuildException("Predicate " + predicateName + " should have boolean return type");
+            res.add(env -> {
+                Object invoke = new MethodInvoker(method, instance).invoke(env);
+                return (boolean) invoke;
+            });
+        }
+        return res;
+    }
+
+    private Map<String, Method> getNamedMethods(Class<?> clazz)
+    {
+        Map<String, Method> map = new HashMap<>();
+        Method[] methods = clazz.getDeclaredMethods();
+        for (final Method method : methods)
+        {
+            map.put(method.getName(), method);
+        }
+        Class<?> enclosingClass = clazz.getEnclosingClass();
+        if (enclosingClass != null)
+            map.putAll(getNamedMethods(enclosingClass));
+        return map;
     }
 
     public Object getInstance()

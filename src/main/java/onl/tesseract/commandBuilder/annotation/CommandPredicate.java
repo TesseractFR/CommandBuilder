@@ -2,7 +2,7 @@ package onl.tesseract.commandBuilder.annotation;
 
 import java.lang.annotation.*;
 
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(Predicates.class)
 public @interface CommandPredicate {
@@ -10,7 +10,7 @@ public @interface CommandPredicate {
     String value();
 }
 
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @interface Predicates {
 
