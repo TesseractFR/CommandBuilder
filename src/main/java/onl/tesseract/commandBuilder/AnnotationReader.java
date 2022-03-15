@@ -17,11 +17,14 @@ import java.util.function.Predicate;
 abstract class AnnotationReader {
     protected final Command commandAnnotation;
     protected final Object instance;
+    protected final CommandInstanceFactory instanceFactory;
 
-    protected AnnotationReader(Object instance, final Command commandAnnotation)
+    protected AnnotationReader(Object instance, final Command commandAnnotation,
+                               final CommandInstanceFactory instanceFactory)
     {
         this.instance = instance;
         this.commandAnnotation = commandAnnotation;
+        this.instanceFactory = instanceFactory;
     }
 
     abstract String readName();
@@ -88,7 +91,7 @@ abstract class AnnotationReader {
     }
 
     @Nullable
-    abstract Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject);
+    abstract Consumer<CommandEnvironment> readCommandBody();
 
     abstract List<Predicate<CommandEnvironment>> readPredicates();
 
@@ -106,7 +109,7 @@ abstract class AnnotationReader {
             if (method.getReturnType() != boolean.class)
                 throw new CommandBuildException("Predicate " + predicateName + " should have boolean return type");
             res.add(env -> {
-                Object invoke = new MethodInvoker(method, instance).invoke(env);
+                Object invoke = new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass())).invoke(env);
                 return (boolean) invoke;
             });
         }

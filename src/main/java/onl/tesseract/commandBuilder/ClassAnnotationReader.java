@@ -22,9 +22,9 @@ final class ClassAnnotationReader extends AnnotationReader {
 
     private final Class<?> clazz;
 
-    ClassAnnotationReader(final Object instance)
+    ClassAnnotationReader(final Object instance, CommandInstanceFactory instanceFactory)
     {
-        super(instance, instance.getClass().getAnnotation(Command.class));
+        super(instance, instance.getClass().getAnnotation(Command.class), instanceFactory);
         this.clazz = instance.getClass();
         if (commandAnnotation == null)
             throw new IllegalStateException(clazz.getName() + " should be annotated with @Command");
@@ -40,7 +40,7 @@ final class ClassAnnotationReader extends AnnotationReader {
 
     @Nullable
     @Override
-    Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject)
+    Consumer<CommandEnvironment> readCommandBody()
     {
         for (final Method method : clazz.getDeclaredMethods())
         {
@@ -48,7 +48,7 @@ final class ClassAnnotationReader extends AnnotationReader {
             if (annotation == null)
                 continue;
             return env -> {
-                new MethodInvoker(method, instantiatedObject).invoke(env);
+                new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass())).invoke(env);
             };
         }
         return null;
@@ -115,7 +115,7 @@ final class ClassAnnotationReader extends AnnotationReader {
                 continue;
             String name = annotation.value();
             res.add(new Pair<>(name, env -> {
-                return new MethodInvoker(method, instance)
+                return new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
                         .invoke(env);
             }));
         }

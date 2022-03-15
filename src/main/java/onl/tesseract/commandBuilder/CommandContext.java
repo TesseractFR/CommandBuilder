@@ -1,12 +1,15 @@
 package onl.tesseract.commandBuilder;
 
+import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,11 +50,13 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
     }
 }
 
-final class CommandBuilderProvider {
+final class CommandBuilderProvider implements CommandInstanceFactory {
+
+    private static final Map<Class<?>, Object> classToInstance = new HashMap<>();
 
     CommandBuilder provideForClass(final Object commandBuilder)
     {
-        ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder);
+        ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder, this);
         CommandBuilder command = provide(reader);
         for (final CommandBuilder subCommand : reader.readSubCommands())
         {
@@ -62,7 +67,7 @@ final class CommandBuilderProvider {
 
     CommandBuilder provideFor(final Object instance, final Method method)
     {
-        return provide(new MethodAnnotationReader(instance, method));
+        return provide(new MethodAnnotationReader(instance, method, this));
     }
 
     CommandBuilder provide(AnnotationReader reader)
@@ -71,7 +76,7 @@ final class CommandBuilderProvider {
                 .permission(reader.readPermission())
                 .description(reader.readDescription())
                 .playerOnly(reader.readPlayerOnly())
-                .command(reader.readCommandBody(reader.getInstance()));
+                .command(reader.readCommandBody());
 
         Map<CommandArgument, Boolean> arguments = reader.readArguments();
         arguments.forEach((arg, optional) -> {
@@ -85,5 +90,23 @@ final class CommandBuilderProvider {
             res.alias(alias);
         reader.readEnvInserters().forEach(pair -> res.envInserter(pair.getLeft(), pair.getRight()));
         return res;
+    }
+
+    @Override
+    public Object getClassInstance(final Class<?> clazz)
+    {
+        if (classToInstance.containsKey(clazz))
+            return classToInstance.get(clazz);
+        Object instance;
+        try
+        {
+            instance = clazz.getDeclaredConstructor().newInstance();
+        }
+        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+        {
+            throw new CommandBuildException(e);
+        }
+        classToInstance.put(clazz, instance);
+        return instance;
     }
 }

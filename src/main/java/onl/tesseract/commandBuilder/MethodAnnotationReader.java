@@ -15,9 +15,9 @@ import java.util.function.Predicate;
 final class MethodAnnotationReader extends AnnotationReader {
     private final Method method;
 
-    MethodAnnotationReader(final Object instance, final Method method)
+    MethodAnnotationReader(final Object instance, final Method method, CommandInstanceFactory instanceFactory)
     {
-        super(instance, method.getAnnotation(Command.class));
+        super(instance, method.getAnnotation(Command.class), instanceFactory);
         this.method = method;
         if (commandAnnotation == null)
             throw new IllegalStateException(method.getName() + " method should be annotated with @Command");
@@ -60,10 +60,10 @@ final class MethodAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    Consumer<CommandEnvironment> readCommandBody(Object instantiatedObject)
+    Consumer<CommandEnvironment> readCommandBody()
     {
         return env -> {
-            new MethodInvoker(method, instantiatedObject)
+            new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
                     .includeEnvArguments()
                     .invoke(env);
         };
