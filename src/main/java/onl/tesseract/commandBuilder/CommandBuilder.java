@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ public class CommandBuilder {
     private boolean playerOnly;
     private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
     private List<String> aliases = new ArrayList<>();
+    private List<Pair<String, Function<CommandEnvironment, Object>>> envInserters = new ArrayList<>();
 
     /**
      * Start building a new command with auto generated help message
@@ -320,6 +322,7 @@ public class CommandBuilder {
         }
         else if (i < args.length && (subCommands.containsKey(args[i]) || subCommandsAliases.containsKey(args[i])))
         {
+            executeEnvInserters(env);
             CommandBuilder subCommand = getSubCommandOrAlias(args[i]);
             if (subCommand.hasPermission(sender))
                 subCommand.execute(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
@@ -328,10 +331,17 @@ public class CommandBuilder {
             return;
         }
 
+        executeEnvInserters(env);
         if (consumer != null)
             consumer.accept(env);
         else
             help(sender);
+    }
+
+    private void executeEnvInserters(CommandEnvironment env) {
+        envInserters.forEach(pair -> {
+            env.set(pair.getLeft(), pair.getRight().apply(env));
+        });
     }
 
     private CommandBuilder getSubCommandOrAlias(String name)
@@ -509,6 +519,12 @@ public class CommandBuilder {
     public CommandBuilder alias(String alias)
     {
         aliases.add(alias);
+        return this;
+    }
+
+    public CommandBuilder envInserter(String key, Function<CommandEnvironment, Object> function)
+    {
+        envInserters.add(new Pair<>(key, function));
         return this;
     }
 

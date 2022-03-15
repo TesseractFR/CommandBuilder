@@ -10,9 +10,3 @@ public @interface CommandPredicate {
     String value();
 }
 
-@Target({ElementType.METHOD, ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@interface Predicates {
-
-    CommandPredicate[] value();
-}

@@ -1,11 +1,9 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.annotation.Argument;
-import onl.tesseract.commandBuilder.annotation.Command;
-import onl.tesseract.commandBuilder.annotation.CommandBody;
-import onl.tesseract.commandBuilder.annotation.CommandPredicate;
+import onl.tesseract.commandBuilder.annotation.*;
 import org.bukkit.command.CommandSender;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
@@ -151,6 +149,18 @@ public class CommandContextTest {
 
         Mockito.verify(sender, Mockito.times(0)).sendMessage(Mockito.anyString());
     }
+
+    @Test
+    public void insertEnvTest()
+    {
+        CommandSender sender = Mockito.mock(CommandSender.class);
+        CommandEnvironment env = new CommandEnvironment(sender);
+        CommandInsertEnv commandInsertEnv = new CommandInsertEnv();
+        commandInsertEnv.builder.execute(sender, env, new String[0]);
+
+        Assertions.assertNotNull(env.get("bar"));
+        Assertions.assertEquals(43, env.get("bar", Integer.class));
+    }
 }
 
 @Command
@@ -258,5 +268,20 @@ class CommandWithPredicates extends CommandContext {
     void main()
     {
 
+    }
+}
+
+@Command
+class CommandInsertEnv extends CommandContext {
+
+    @EnvInsert("foo")
+    int insertFoo() {
+        return 42;
+    }
+
+    @CommandBody
+    void command(CommandEnvironment env) {
+        if (env.get("foo") != null)
+            env.set("bar", env.get("foo", Integer.class) + 1);
     }
 }

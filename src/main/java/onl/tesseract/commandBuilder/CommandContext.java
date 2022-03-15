@@ -83,6 +83,7 @@ final class CommandBuilderProvider {
         reader.readPredicates().forEach(res::predicate);
         for (final String alias : reader.readAliases())
             res.alias(alias);
+        reader.readEnvInserters().forEach(pair -> res.envInserter(pair.getLeft(), pair.getRight()));
         return res;
     }
 }

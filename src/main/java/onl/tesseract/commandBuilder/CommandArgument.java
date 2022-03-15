@@ -36,7 +36,7 @@ public class CommandArgument {
         tabCompletion = reader.readCompletion();
     }
 
-    protected CommandArgument(String name)
+    public CommandArgument(String name)
     {
         this(name, void.class);
     }

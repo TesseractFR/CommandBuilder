@@ -3,6 +3,7 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
+import onl.tesseract.commandBuilder.annotation.EnvInsert;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -99,5 +101,24 @@ final class ClassAnnotationReader extends AnnotationReader {
     List<Predicate<CommandEnvironment>> readPredicates()
     {
         return readPredicates(clazz.getAnnotationsByType(CommandPredicate.class));
+    }
+
+    @Override
+    List<Pair<String, Function<CommandEnvironment, Object>>> readEnvInserters()
+    {
+        List<Pair<String, Function<CommandEnvironment, Object>>> res = new ArrayList<>();
+        Method[] methods = clazz.getDeclaredMethods();
+        for (final Method method : methods)
+        {
+            EnvInsert annotation = method.getAnnotation(EnvInsert.class);
+            if (annotation == null)
+                continue;
+            String name = annotation.value();
+            res.add(new Pair<>(name, env -> {
+                return new MethodInvoker(method, instance)
+                        .invoke(env);
+            }));
+        }
+        return res;
     }
 }

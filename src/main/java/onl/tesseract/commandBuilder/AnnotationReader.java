@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 abstract class AnnotationReader {
@@ -124,6 +125,10 @@ abstract class AnnotationReader {
         if (enclosingClass != null)
             map.putAll(getNamedMethods(enclosingClass));
         return map;
+    }
+
+    List<Pair<String, Function<CommandEnvironment, Object>>> readEnvInserters() {
+        return List.of();
     }
 
     public Object getInstance()
