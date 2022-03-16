@@ -9,10 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -56,7 +53,7 @@ final class ClassAnnotationReader extends AnnotationReader {
 
     List<CommandBuilder> readSubCommands()
     {
-        List<CommandBuilder> res = new ArrayList<>();
+        List<Pair<CommandBuilder, Integer>> res = new ArrayList<>();
         Method[] methods = clazz.getDeclaredMethods();
         for (final Method method : methods)
         {
@@ -64,15 +61,18 @@ final class ClassAnnotationReader extends AnnotationReader {
             if (annotation == null)
                 continue;
             method.setAccessible(true);
-            res.add(new CommandBuilderProvider().provideFor(instance, method));
+            res.add(new Pair<>(new CommandBuilderProvider().provideFor(instance, method), annotation.helpPriority()));
         }
         res.addAll(readClassCommands(clazz.getDeclaredClasses()));
         // Read external classes
         res.addAll(readClassCommands(commandAnnotation.subCommands()));
-        return res;
+        res.sort(Comparator.comparingInt(Pair::getRight));
+        return res.stream()
+                .map(Pair::getLeft)
+                .collect(Collectors.toList());
     }
 
-    private List<CommandBuilder> readClassCommands(Class<?>[] classes) throws CommandBuildException
+    private List<Pair<CommandBuilder, Integer>> readClassCommands(Class<?>[] classes) throws CommandBuildException
     {
         return Arrays.stream(classes)
                      .map(this::readClassCommand)
@@ -81,7 +81,7 @@ final class ClassAnnotationReader extends AnnotationReader {
     }
 
     @Nullable
-    private CommandBuilder readClassCommand(final Class<?> clazz) throws CommandBuildException
+    private Pair<CommandBuilder, Integer> readClassCommand(final Class<?> clazz) throws CommandBuildException
     {
         Command annotation = clazz.getAnnotation(Command.class);
         if (annotation == null)
@@ -89,7 +89,7 @@ final class ClassAnnotationReader extends AnnotationReader {
         try
         {
             Object instance = clazz.getDeclaredConstructor().newInstance();
-            return new CommandBuilderProvider().provideForClass(instance);
+            return new Pair<>(new CommandBuilderProvider().provideForClass(instance), annotation.helpPriority());
         }
         catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
         {

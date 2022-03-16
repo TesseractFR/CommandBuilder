@@ -40,4 +40,6 @@ public @interface Command {
      * Usable only on classes
      */
     Class<?>[] subCommands() default {};
+
+    int helpPriority() default 50;
 }

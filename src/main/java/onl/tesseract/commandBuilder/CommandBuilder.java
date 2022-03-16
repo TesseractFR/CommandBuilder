@@ -24,7 +24,9 @@ public class CommandBuilder {
     ArrayList<CommandArgument> arguments = new ArrayList<>();
     ArrayList<CommandArgument> optionalArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
-    private final HashMap<String, CommandBuilder> subCommands = new HashMap<>();
+    // Use linked hashmap to keep insertion order
+    // Useful to display help messages with subcommands in a pertinent order
+    private final HashMap<String, CommandBuilder> subCommands = new LinkedHashMap<>();
     private final HashMap<String, CommandBuilder> subCommandsAliases = new HashMap<>();
     private String description;
     private final String name;
