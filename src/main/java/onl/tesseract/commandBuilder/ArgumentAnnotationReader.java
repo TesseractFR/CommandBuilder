@@ -63,8 +63,14 @@ class ArgumentAnnotationReader {
                     {
                         return method.invoke(argument, objects);
                     }
-                    catch (IllegalAccessException | InvocationTargetException e)
+                    catch (IllegalAccessException e)
                     {
+                        throw new CommandBuildException(e);
+                    }
+                    catch (InvocationTargetException e)
+                    {
+                        if (e.getCause() instanceof RuntimeException)
+                            throw (RuntimeException) e.getCause();
                         throw new CommandBuildException(e);
                     }
                 };
