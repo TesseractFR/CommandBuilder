@@ -49,7 +49,10 @@ final class MethodAnnotationReader extends AnnotationReader {
             try
             {
                 //noinspection unchecked
-                args.put(instantiateArgument((Class<? extends CommandArgument>) clazz, name), argAnnotation.optional());
+                CommandArgument arg = instantiateArgument((Class<? extends CommandArgument>) clazz, name);
+                if (argAnnotation.optional() && !argAnnotation.def().isEmpty())
+                    arg.defaultValue(argAnnotation.def());
+                args.put(arg, argAnnotation.optional());
             }
             catch (Exception e)
             {

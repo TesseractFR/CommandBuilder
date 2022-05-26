@@ -128,6 +128,12 @@ public class CommandArgument {
         return this;
     }
 
+    public CommandArgument defaultValue(String def)
+    {
+        this.def = env -> this.supplier.apply(def, env);
+        return this;
+    }
+
     public @Nullable Object getDefault(CommandEnvironment env)
     {
         return def == null ? null : def.apply(env);
