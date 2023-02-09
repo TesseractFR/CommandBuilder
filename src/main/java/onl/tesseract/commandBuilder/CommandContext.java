@@ -3,7 +3,9 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Class representation of a command that can be performed in-game.
@@ -29,6 +32,13 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
     public CommandContext()
     {
         builder = new CommandBuilderProvider().provideForClass(this);
+    }
+
+    public void register(final JavaPlugin plugin, final String commandName)
+    {
+        PluginCommand command = Objects.requireNonNull(plugin.getCommand(commandName));
+        command.setExecutor(this);
+        command.setTabCompleter(this);
     }
 
     @Override
