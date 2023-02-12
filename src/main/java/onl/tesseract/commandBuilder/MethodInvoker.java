@@ -16,18 +16,10 @@ public class MethodInvoker {
     private final Method methodToInvoke;
     private final Object instance;
 
-    private boolean includeEnvArguments;
-
     public MethodInvoker(final Method methodToInvoke, final Object instance)
     {
         this.methodToInvoke = methodToInvoke;
         this.instance = instance;
-    }
-
-    public MethodInvoker includeEnvArguments()
-    {
-        this.includeEnvArguments = true;
-        return this;
     }
 
     @Nullable
@@ -44,13 +36,8 @@ public class MethodInvoker {
             Env envAnnotation = parameter.getAnnotation(Env.class);
             if (annotation != null)
             {
-                if (includeEnvArguments)
-                {
-                    Object o = env.get(annotation.label(), parameter.getType());
-                    objects[i] = o;
-                }
-                else
-                    throw new CommandBuildException("Argument injection is not possible in this context (method " + methodToInvoke.getName() + " of class " + instance.getClass().getName());
+                Object o = env.get(annotation.label(), parameter.getType());
+                objects[i] = o;
             }
             else if (envAnnotation != null)
             {

@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -63,7 +64,6 @@ abstract class AnnotationReader {
     List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException, InvalidArgumentTypeException
     {
         Argument[] args = commandAnnotation.args();
-        // LinkedHashMap to keep insertion order
         List<CommandArgumentDefinition<?>> res = new ArrayList<>();
 
         for (Argument argAnnotation : args)
@@ -88,6 +88,8 @@ abstract class AnnotationReader {
     abstract Consumer<CommandEnvironment> readCommandBody();
 
     abstract List<Predicate<CommandEnvironment>> readPredicates();
+
+    abstract List<CommandArgumentDefinition<?>> readBodyArguments();
 
     protected List<Predicate<CommandEnvironment>> readPredicates(CommandPredicate[] annotations)
     {
@@ -127,6 +129,41 @@ abstract class AnnotationReader {
     List<Pair<String, Function<CommandEnvironment, Object>>> readEnvInserters()
     {
         return List.of();
+    }
+
+    /**
+     * Returns the list of arguments that appear in the method parameters
+     */
+    protected List<CommandArgumentDefinition<?>> readMethodPassedArguments(final Method method)
+    {
+        List<CommandArgumentDefinition<?>> args = new ArrayList<>();
+        Parameter[] parameters = method.getParameters();
+        for (Parameter parameter : parameters)
+        {
+            Argument argAnnotation = parameter.getAnnotation(Argument.class);
+            if (argAnnotation == null)
+                continue;
+            Class<? extends CommandArgument<?>> type = argAnnotation.clazz();
+            if (type == Argument.None.class)
+            {
+                if (!CommandArgument.class.isAssignableFrom(parameter.getType()))
+                    throw new InvalidArgumentTypeException(parameter.getType().getSimpleName() + " is not a valid argument type");
+                type = (Class<? extends CommandArgument<?>>) parameter.getType();
+            }
+
+            CommandArgumentBuilder<?> argumentBuilder = new CommandArgumentBuilder<>(type, argAnnotation.label());
+            argumentBuilder.setOptional(argAnnotation.optional());
+            argumentBuilder.setDefaultInput(argAnnotation.def());
+            try
+            {
+                args.add(argumentBuilder.build());
+            }
+            catch (Exception e)
+            {
+                throw new CommandBuildException(e);
+            }
+        }
+        return args;
     }
 
     public Object getInstance()

@@ -1,6 +1,5 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
@@ -8,9 +7,7 @@ import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -40,32 +37,7 @@ final class MethodAnnotationReader extends AnnotationReader {
     {
         List<CommandArgumentDefinition<?>> args = super.readArguments();
 
-        Parameter[] parameters = method.getParameters();
-        for (Parameter parameter : parameters)
-        {
-            Argument argAnnotation = parameter.getAnnotation(Argument.class);
-            if (argAnnotation == null)
-                continue;
-            Class<? extends CommandArgument<?>> type = argAnnotation.clazz();
-            if (type == Argument.None.class)
-            {
-                if (!CommandArgument.class.isAssignableFrom(parameter.getType()))
-                    throw new InvalidArgumentTypeException(parameter.getType().getSimpleName() + " is not a valid argument type");
-                type = (Class<? extends CommandArgument<?>>) parameter.getType();
-            }
-
-            CommandArgumentBuilder<?> argumentBuilder = new CommandArgumentBuilder<>(type, argAnnotation.label());
-            argumentBuilder.setOptional(argAnnotation.optional());
-            argumentBuilder.setDefaultInput(argAnnotation.def());
-            try
-            {
-                args.add(argumentBuilder.build());
-            }
-            catch (Exception e)
-            {
-                throw new CommandBuildException(e);
-            }
-        }
+        args.addAll(readMethodPassedArguments(method));
         return args;
     }
 
@@ -74,7 +46,6 @@ final class MethodAnnotationReader extends AnnotationReader {
     {
         return env -> {
             new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
-                    .includeEnvArguments()
                     .invoke(env);
         };
     }
@@ -83,5 +54,11 @@ final class MethodAnnotationReader extends AnnotationReader {
     List<Predicate<CommandEnvironment>> readPredicates()
     {
         return readPredicates(method.getAnnotationsByType(CommandPredicate.class));
+    }
+
+    @Override
+    List<CommandArgumentDefinition<?>> readBodyArguments()
+    {
+        return new ArrayList<>();
     }
 }

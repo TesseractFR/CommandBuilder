@@ -4,6 +4,7 @@ import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.annotation.EnvInsert;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +50,19 @@ final class ClassAnnotationReader extends AnnotationReader {
             };
         }
         return null;
+    }
+
+    @Override
+    List<CommandArgumentDefinition<?>> readBodyArguments()
+    {
+        for (final Method method : clazz.getDeclaredMethods())
+        {
+            CommandBody annotation = method.getAnnotation(CommandBody.class);
+            if (annotation == null)
+                continue;
+            return readMethodPassedArguments(method);
+        }
+        return new ArrayList<>();
     }
 
     List<CommandBuilder> readSubCommands()

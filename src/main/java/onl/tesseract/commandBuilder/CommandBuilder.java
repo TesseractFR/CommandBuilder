@@ -30,6 +30,7 @@ public class CommandBuilder {
 
     List<CommandArgumentDefinition<?>> arguments = new ArrayList<>();
     List<CommandArgumentDefinition<?>> optionalArguments = new ArrayList<>();
+    List<CommandArgumentDefinition<?>> bodyArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     // Use linked hashmap to keep insertion order
     // Useful to display help messages with subcommands in a pertinent order
@@ -147,6 +148,12 @@ public class CommandBuilder {
         {
             throw new RuntimeException(e);
         }
+    }
+
+    public CommandBuilder withBodyArg(CommandArgumentDefinition<?> arg)
+    {
+        bodyArguments.add(arg);
+        return this;
     }
 
     /**
@@ -315,11 +322,11 @@ public class CommandBuilder {
             help(sender);
             return;
         }
-        if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
-        {
-            help(sender);
-            return;
-        }
+//        if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
+//        {
+//            help(sender);
+//            return;
+//        }
 
         // Parse mandatory arguments
         int i;
@@ -333,6 +340,11 @@ public class CommandBuilder {
                     text.add(part);
                 parseArgument(env, arguments.get(i), text.toString());
                 break;
+            }
+            if (i >= args.length)
+            {
+                help(sender);
+                return;
             }
             if (!parseArgument(env, arguments.get(i), args[i]))
                 return;
@@ -363,6 +375,15 @@ public class CommandBuilder {
             else
                 sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
             return;
+        }
+        else if (i < args.length && !bodyArguments.isEmpty())
+        {
+            for (int j = 0; i < args.length && j < bodyArguments.size(); j++)
+            {
+                if (!parseArgument(env, bodyArguments.get(j), args[i]))
+                    return;
+                i++;
+            }
         }
 
         executeEnvInserters(env);

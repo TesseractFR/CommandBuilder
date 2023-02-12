@@ -117,6 +117,16 @@ public class ArgumentTest {
 
         verify(sender, times(1)).sendMessage("null");
     }
+
+    @Test
+    public void exec_ArgumentOnCommandBody()
+    {
+        CommandSender sender = mock(CommandSender.class);
+
+        new ArgumentOnCommandBody().builder.execute(sender, new String[] {"12"});
+
+        verify(sender, times(1)).sendMessage("12");
+    }
 }
 
 @Command(args = @Argument(label = "arg", clazz = IntegerArgument.class))
@@ -204,5 +214,14 @@ class OptionalArgumentOnSubCommandFunction extends CommandContext {
             sender.sendMessage(integerArgument.get() + "");
         else
             sender.sendMessage("null");
+    }
+}
+
+@Command
+class ArgumentOnCommandBody extends CommandContext {
+    @CommandBody
+    public void testCommand(@Argument(label = "arg") IntegerArgument integerArgument, CommandSender sender)
+    {
+        sender.sendMessage(integerArgument.get() + "");
     }
 }

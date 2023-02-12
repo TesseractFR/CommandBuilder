@@ -96,6 +96,8 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
             else
                 res.withArg(arg);
         });
+        for (final CommandArgumentDefinition<?> arg : reader.readBodyArguments())
+            res.withBodyArg(arg);
         reader.readPredicates().forEach(res::predicate);
         for (final String alias : reader.readAliases())
             res.alias(alias);
