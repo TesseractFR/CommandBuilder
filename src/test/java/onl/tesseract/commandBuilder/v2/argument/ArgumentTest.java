@@ -1,15 +1,14 @@
 package onl.tesseract.commandBuilder.v2.argument;
 
 import onl.tesseract.commandBuilder.CommandEnvironment;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.v2.CommandArgument;
+import onl.tesseract.commandBuilder.v2.CommandArgumentBuilder;
 import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,51 +23,34 @@ class ArgumentTest {
     }
 
     @Test
-    void parseInteger_isNumber_ok() throws ArgumentParsingException
+    void parseInteger_isNumber_ok() throws ArgumentParsingException, ReflectiveOperationException
     {
-        IntegerArgument argument = new IntegerArgument("number");
+        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
+        CommandArgumentDefinition<Integer> definition = builder.build();
 
-        argument.parseInput("42", new CommandEnvironment(sender));
+        CommandArgument<Integer> arg = definition.newInstance("42", new CommandEnvironment(sender));
 
-        assertEquals(42, argument.get());
+        assertNotNull(arg);
+        assertEquals(42, arg.get());
     }
 
     @Test
-    void parseInteger_invalidArgNotHandled()
+    void parseInteger_invalidNumber_NotHandled() throws ReflectiveOperationException
     {
-        IntegerArgument argument = new IntegerArgument("number");
+        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
+        CommandArgumentDefinition<Integer> definition = builder.build();
 
-        assertThrows(ArgumentParsingException.class, () -> argument.parseInput("foo", new CommandEnvironment(sender)));
+        assertThrows(ArgumentParsingException.class, () -> definition.newInstance("foo", new CommandEnvironment(sender)));
     }
 
     @Test
-    void parseInteger_invalidArgHandled() throws ArgumentParsingException
+    void parseInteger_invalidNumber_handled() throws ArgumentParsingException, ReflectiveOperationException
     {
-        IntegerArgument argument = new IntegerArgument("number");
-        // TODO: handle errors
+        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
+        CommandArgumentDefinition<Integer> definition = builder.build();
 
-        boolean res = argument.parseInput("foo", new CommandEnvironment(sender));
+        CommandArgument<Integer> arg = definition.newInstance("foo", new CommandEnvironment(sender));
 
-        assertFalse(res);
-    }
-}
-
-class IntegerArgument extends CommandArgument<Integer> {
-
-    protected IntegerArgument(@NotNull final String name)
-    {
-        super(name);
-    }
-
-    @Override
-    protected @NotNull Integer parser(@NotNull final String input, @NotNull final CommandEnvironment environment)
-    {
-        return Integer.parseInt(input);
-    }
-
-    @Override
-    protected @NotNull List<String> tabCompletion(@NotNull final String input, @NotNull final CommandEnvironment environment)
-    {
-        return List.of("1", "2", "3");
+        assertNull(arg);
     }
 }

@@ -1,7 +1,6 @@
 package onl.tesseract.commandBuilder.v2;
 
 import onl.tesseract.commandBuilder.CommandEnvironment;
-import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,18 +36,10 @@ public abstract class CommandArgument<T> {
         return Objects.requireNonNull(value);
     }
 
-    public final boolean parseInput(String input, CommandEnvironment environment) throws ArgumentParsingException
+    public CommandArgument<T> setValue(@NotNull final T value)
     {
-        try
-        {
-            this.value = parser(input, environment);
-            return true;
-        }
-        catch (Exception e)
-        {
-            // Handle errors
-            throw new ArgumentParsingException(e);
-        }
+        this.value = value;
+        return this;
     }
 
     @NotNull
