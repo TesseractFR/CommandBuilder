@@ -40,7 +40,7 @@ class ArgumentTest {
         CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
         CommandArgumentDefinition<Integer> definition = builder.build();
 
-        assertThrows(ArgumentParsingException.class, () -> definition.newInstance("foo", new CommandEnvironment(sender)));
+        assertThrows(ArgumentParsingException.class, () -> definition.newInstance("-1", new CommandEnvironment(sender)));
     }
 
     @Test

@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder.definition;
 
 import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
+import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import onl.tesseract.commandBuilder.v2.CommandArgument;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -22,21 +22,21 @@ public class CommandArgumentDefinition<T> {
     private final BiFunction<String, CommandEnvironment, T> parser;
     private final BiFunction<String, CommandEnvironment, List<String>> tabCompleter;
     private final Function<CommandEnvironment, T> defaultSupplier;
-    private final Map<Class<? extends Throwable>, Function<String, String>> errors;
+    private final ArgumentErrorHandlers errorHandlers;
 
     public CommandArgumentDefinition(final String name,
                                      final Class<? extends CommandArgument<T>> type,
                                      final BiFunction<String, CommandEnvironment, T> parser,
                                      final BiFunction<String, CommandEnvironment, List<String>> tabCompleter,
                                      final Function<CommandEnvironment, T> defaultSupplier,
-                                     final Map<Class<? extends Throwable>, Function<String, String>> errors)
+                                     final ArgumentErrorHandlers errorHandlers)
     {
         this.name = name;
         this.type = type;
         this.parser = parser;
         this.tabCompleter = tabCompleter;
         this.defaultSupplier = defaultSupplier;
-        this.errors = errors;
+        this.errorHandlers = errorHandlers;
     }
 
     /**
@@ -57,8 +57,8 @@ public class CommandArgumentDefinition<T> {
         }
         catch (Exception e)
         {
-            if (hasError(e.getClass()))
-                environment.getSender().sendMessage(ChatColor.RED + getErrorMessage(e));
+            if (errorHandlers.hasHandlerFor(e.getClass()))
+                environment.getSender().sendMessage(ChatColor.RED + errorHandlers.getMessageFor(e));
             else
                 throw new ArgumentParsingException("Received exception during parsing", e);
         }
@@ -77,16 +77,6 @@ public class CommandArgumentDefinition<T> {
         {
             throw new ArgumentParsingException("Failed to construct a new argument instance via reflective access", e);
         }
-    }
-
-    public String getErrorMessage(Throwable throwable)
-    {
-        return errors.get(throwable.getClass()).apply(throwable.getMessage());
-    }
-
-    public boolean hasError(Class<? extends Throwable> throwable)
-    {
-        return errors.containsKey(throwable);
     }
 
     @Nullable

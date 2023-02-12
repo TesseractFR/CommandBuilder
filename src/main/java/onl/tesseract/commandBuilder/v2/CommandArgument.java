@@ -28,7 +28,7 @@ public abstract class CommandArgument<T> {
     @NotNull
     protected abstract List<String> tabCompletion(@NotNull String input, @NotNull CommandEnvironment environment);
 
-    // TODO: errors
+    protected abstract void errors(ArgumentErrorHandlers handlers);
 
     @NotNull
     public final T get()

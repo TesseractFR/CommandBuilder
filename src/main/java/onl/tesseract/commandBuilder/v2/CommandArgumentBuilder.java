@@ -4,7 +4,6 @@ import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 
 import java.lang.reflect.Constructor;
-import java.util.Map;
 import java.util.function.Function;
 
 public class CommandArgumentBuilder<T> {
@@ -24,11 +23,14 @@ public class CommandArgumentBuilder<T> {
         CommandArgument<T> argumentInstance = constructor.newInstance(name);
         Function<CommandEnvironment, T> defSupplier = env -> null;
 
+        ArgumentErrorHandlers errorHandlers = new ArgumentErrorHandlers();
+        argumentInstance.errors(errorHandlers);
+
         return new CommandArgumentDefinition<>(name,
                 argumentClass,
                 argumentInstance::parser,
                 argumentInstance::tabCompletion,
                 defSupplier,
-                Map.of());
+                errorHandlers);
     }
 }
