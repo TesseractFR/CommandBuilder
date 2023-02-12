@@ -3,7 +3,9 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -58,36 +60,28 @@ abstract class AnnotationReader {
         return commandAnnotation.playerOnly();
     }
 
-    Map<CommandArgument, Boolean> readArguments() throws CommandBuildException
+    List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException, InvalidArgumentTypeException
     {
         Argument[] args = commandAnnotation.args();
         // LinkedHashMap to keep insertion order
-        Map<CommandArgument, Boolean> res = new LinkedHashMap<>();
+        List<CommandArgumentDefinition<?>> res = new ArrayList<>();
 
         for (Argument argAnnotation : args)
         {
             try
             {
-                @SuppressWarnings("unchecked")
-                CommandArgument commandArgument = instantiateArgument(argAnnotation.clazz(), argAnnotation.label());
-                if (argAnnotation.optional() && !argAnnotation.def().isEmpty())
-                {
-                    commandArgument.defaultValue(env -> commandArgument.supplier.apply(argAnnotation.def(), env));
-                }
-                res.put(commandArgument, argAnnotation.optional());
-            }catch (Exception e)
+                CommandArgumentBuilder<?> argBuilder = new CommandArgumentBuilder<>(argAnnotation.clazz(), argAnnotation.label());
+
+                argBuilder.setOptional(argAnnotation.optional());
+                argBuilder.setDefaultInput(argAnnotation.def());
+                res.add(argBuilder.build());
+            }
+            catch (Exception e)
             {
                 throw new CommandBuildException(e);
             }
         }
         return res;
-    }
-
-    protected CommandArgument instantiateArgument(Class<? extends CommandArgument> clazz,
-                                                  String name) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
-    {
-        Constructor<? extends CommandArgument> declaredConstructor = clazz.getDeclaredConstructor(String.class);
-        return declaredConstructor.newInstance(name);
     }
 
     @Nullable
@@ -130,7 +124,8 @@ abstract class AnnotationReader {
         return map;
     }
 
-    List<Pair<String, Function<CommandEnvironment, Object>>> readEnvInserters() {
+    List<Pair<String, Function<CommandEnvironment, Object>>> readEnvInserters()
+    {
         return List.of();
     }
 

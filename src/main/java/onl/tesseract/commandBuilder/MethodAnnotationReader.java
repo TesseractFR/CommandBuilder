@@ -3,12 +3,13 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -33,9 +34,9 @@ final class MethodAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    Map<CommandArgument, Boolean> readArguments() throws CommandBuildException
+    List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException, InvalidArgumentTypeException
     {
-        Map<CommandArgument, Boolean> args = super.readArguments();
+        List<CommandArgumentDefinition<?>> args = super.readArguments();
 
         Parameter[] parameters = method.getParameters();
         for (Parameter parameter : parameters)
@@ -43,16 +44,24 @@ final class MethodAnnotationReader extends AnnotationReader {
             Argument argAnnotation = parameter.getAnnotation(Argument.class);
             if (argAnnotation == null)
                 continue;
-            Class<?> clazz = argAnnotation.clazz();
-            String name = argAnnotation.label();
-
+            Class<? extends CommandArgument<?>> type = argAnnotation.clazz();
+            if (type == Argument.None.class)
+            {
+                try
+                {
+                    type = (Class<? extends CommandArgument<?>>) parameter.getType();
+                }
+                catch (ClassCastException e)
+                {
+                    throw new InvalidArgumentTypeException(parameter.getType().getSimpleName() + " is not a valid argument type", e);
+                }
+            }
+            CommandArgumentBuilder<?> argumentBuilder = new CommandArgumentBuilder<>(type, argAnnotation.label());
+            argumentBuilder.setOptional(argAnnotation.optional());
+            argumentBuilder.setDefaultInput(argAnnotation.def());
             try
             {
-                //noinspection unchecked
-                CommandArgument arg = instantiateArgument((Class<? extends CommandArgument>) clazz, name);
-                if (argAnnotation.optional() && !argAnnotation.def().isEmpty())
-                    arg.defaultValue(argAnnotation.def());
-                args.put(arg, argAnnotation.optional());
+                args.add(argumentBuilder.build());
             }
             catch (Exception e)
             {

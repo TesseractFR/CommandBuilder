@@ -3,8 +3,8 @@ package onl.tesseract.commandBuilder.v2.argument;
 import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
-import onl.tesseract.commandBuilder.v2.CommandArgument;
-import onl.tesseract.commandBuilder.v2.CommandArgumentBuilder;
+import onl.tesseract.commandBuilder.CommandArgument;
+import onl.tesseract.commandBuilder.CommandArgumentBuilder;
 import org.bukkit.command.CommandSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ class ArgumentTest {
     @Test
     void parseInteger_isNumber_ok() throws ArgumentParsingException, ReflectiveOperationException
     {
-        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
+        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class, "number");
         CommandArgumentDefinition<Integer> definition = builder.build();
 
         CommandArgument<Integer> arg = definition.newInstance("42", new CommandEnvironment(sender));
@@ -37,7 +37,7 @@ class ArgumentTest {
     @Test
     void parseInteger_invalidNumber_NotHandled() throws ReflectiveOperationException
     {
-        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
+        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class, "number");
         CommandArgumentDefinition<Integer> definition = builder.build();
 
         assertThrows(ArgumentParsingException.class, () -> definition.newInstance("-1", new CommandEnvironment(sender)));
@@ -46,7 +46,7 @@ class ArgumentTest {
     @Test
     void parseInteger_invalidNumber_handled() throws ArgumentParsingException, ReflectiveOperationException
     {
-        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class);
+        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class, "number");
         CommandArgumentDefinition<Integer> definition = builder.build();
 
         CommandArgument<Integer> arg = definition.newInstance("foo", new CommandEnvironment(sender));

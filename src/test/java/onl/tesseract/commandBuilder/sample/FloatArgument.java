@@ -1,26 +1,23 @@
-package onl.tesseract.commandBuilder;
+package onl.tesseract.commandBuilder.sample;
 
+import onl.tesseract.commandBuilder.CommandArgument;
+import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class TextCommandArgument extends CommandArgument<String> {
-    /**
-     * Create a new command argument, to be used with CommandBuilder
-     *
-     * @param name name of the argument.
-     */
-    public TextCommandArgument(String name)
+public class FloatArgument extends CommandArgument<Float> {
+    public FloatArgument(@NotNull final String name)
     {
         super(name);
     }
 
     @Override
-    protected @NotNull String parser(@NotNull final String input, @NotNull final CommandEnvironment environment)
+    protected @NotNull Float parser(@NotNull final String input, @NotNull final CommandEnvironment environment)
     {
-        return input;
+        return Float.parseFloat(input);
     }
 
     @Override
@@ -32,6 +29,6 @@ public class TextCommandArgument extends CommandArgument<String> {
     @Override
     protected void errors(final ArgumentErrorHandlers handlers)
     {
-        // No errors to handle
+        handlers.on(NumberFormatException.class, "Invalid number");
     }
 }

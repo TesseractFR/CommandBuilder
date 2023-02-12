@@ -1,6 +1,8 @@
 package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.*;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
+import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.command.CommandSender;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -34,9 +36,9 @@ public class CommandContextTest {
         assertTrue(command.builder.isPlayerOnly());
 
         assertEquals(1, command.builder.arguments.size());
-        CommandArgument argument = command.builder.arguments.get(0);
+        CommandArgumentDefinition<?> argument = command.builder.arguments.get(0);
         assertEquals("argTest", argument.getName());
-        assertInstanceOf(StringCommandArgument.class, argument);
+        assertEquals(StringCommandArgument.class, argument.getType());
     }
 
     @Test
@@ -66,13 +68,13 @@ public class CommandContextTest {
     public void provideForMethodWithArgsTest() throws NoSuchMethodException
     {
         InnerMethodWithArgsTestCommand command = new InnerMethodWithArgsTestCommand();
-        Method innerCommand = command.getClass().getMethod("innerCommand", String.class);
+        Method innerCommand = command.getClass().getMethod("innerCommand", StringCommandArgument.class);
 
         CommandBuilder builder = new CommandBuilderProvider().provideFor(command, innerCommand);
         assertEquals("inner", builder.getName());
         assertEquals(1, builder.arguments.size());
         assertEquals("arg", builder.arguments.get(0).getName());
-        assertInstanceOf(StringCommandArgument.class, builder.arguments.get(0));
+        assertEquals(StringCommandArgument.class, builder.arguments.get(0).getType());
     }
 
     @Test
@@ -117,7 +119,7 @@ public class CommandContextTest {
     }
 
     @Test
-    public void CallArgsOnSubCommandTest()
+    public void CallArgsOnSubCommandTest() throws CommandExecutionException
     {
         CommandContext commandA = new CallArgsOnSubCommand();
 
@@ -127,7 +129,17 @@ public class CommandContextTest {
     }
 
     @Test
-    public void predicateTest()
+    public void CallArgsOnSubCommand_NoClassOnAnnotationTest() throws CommandExecutionException
+    {
+        CommandContext commandA = new CallArgsOnSubCommand();
+
+        CommandSender sender = Mockito.mock(CommandSender.class);
+        commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
+        Mockito.verify(sender).sendMessage("Hello world!");
+    }
+
+    @Test
+    public void predicateTest() throws CommandExecutionException
     {
         CommandContext command = new CommandWithPredicates();
         CommandSender sender = Mockito.mock(CommandSender.class);
@@ -139,7 +151,7 @@ public class CommandContextTest {
     }
 
     @Test
-    public void predicateFailedTest()
+    public void predicateFailedTest() throws CommandExecutionException
     {
         CommandContext command = new CommandWithPredicates();
         CommandSender sender = Mockito.mock(CommandSender.class);
@@ -151,7 +163,7 @@ public class CommandContextTest {
     }
 
     @Test
-    public void insertEnvTest()
+    public void insertEnvTest() throws CommandExecutionException
     {
         CommandSender sender = Mockito.mock(CommandSender.class);
         CommandEnvironment env = new CommandEnvironment(sender);
@@ -189,7 +201,7 @@ class InnerMethodTestCommand {
 
 class InnerMethodWithArgsTestCommand {
     @Command
-    public void innerCommand(@Argument(label = "arg", clazz = StringCommandArgument.class) String arg)
+    public void innerCommand(@Argument(label = "arg", clazz = StringCommandArgument.class) StringCommandArgument arg)
     {}
 }
 
@@ -197,7 +209,7 @@ class InnerMethodWithArgsTestCommand {
 class CommandClassWithSubCommand extends CommandContext {
 
     @Command
-    public void myCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String arg)
+    public void myCommand(@Argument(label = "test", clazz = StringCommandArgument.class) StringCommandArgument arg)
     {}
 }
 
@@ -242,10 +254,21 @@ class InnerMethodTestBody extends CommandContext {
 class CallArgsOnSubCommand extends CommandContext {
 
     @Command
-    public void testCommand(@Argument(label = "test", clazz = StringCommandArgument.class) String testString,
+    public void testCommand(@Argument(label = "test", clazz = StringCommandArgument.class) StringCommandArgument testString,
                             CommandSender sender)
     {
-        sender.sendMessage(testString);
+        sender.sendMessage(testString.get());
+    }
+}
+
+@Command
+class CallArgsImplicitTypeOnSubCommand extends CommandContext {
+
+    @Command
+    public void testCommand(@Argument(label = "test") StringCommandArgument testString,
+                            CommandSender sender)
+    {
+        sender.sendMessage(testString.get());
     }
 }
 

@@ -22,8 +22,8 @@ public class Guild {
         return null;
     }
 
-    public HashSet<Parcel> getParcels()
+    public Set<Parcel> getParcels()
     {
-        return null;
+        return parcels;
     }
 }

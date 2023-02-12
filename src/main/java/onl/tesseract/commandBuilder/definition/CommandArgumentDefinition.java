@@ -1,9 +1,10 @@
 package onl.tesseract.commandBuilder.definition;
 
+import lombok.Getter;
 import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
-import onl.tesseract.commandBuilder.v2.CommandArgument;
+import onl.tesseract.commandBuilder.CommandArgument;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,26 +18,32 @@ import java.util.function.Function;
  * Definition of a type of argument, how to parse it, how to auto-complete it, and how to handle errors
  */
 public class CommandArgumentDefinition<T> {
+    @Getter
     private final String name;
+    @Getter
     private final Class<? extends CommandArgument<T>> type;
     private final BiFunction<String, CommandEnvironment, T> parser;
     private final BiFunction<String, CommandEnvironment, List<String>> tabCompleter;
-    private final Function<CommandEnvironment, T> defaultSupplier;
+    @Nullable
+    private final String defaultInput;
     private final ArgumentErrorHandlers errorHandlers;
+    private final boolean optional;
 
     public CommandArgumentDefinition(final String name,
                                      final Class<? extends CommandArgument<T>> type,
                                      final BiFunction<String, CommandEnvironment, T> parser,
                                      final BiFunction<String, CommandEnvironment, List<String>> tabCompleter,
-                                     final Function<CommandEnvironment, T> defaultSupplier,
-                                     final ArgumentErrorHandlers errorHandlers)
+                                     final String defaultInput,
+                                     final ArgumentErrorHandlers errorHandlers,
+                                     final boolean optional)
     {
         this.name = name;
         this.type = type;
         this.parser = parser;
         this.tabCompleter = tabCompleter;
-        this.defaultSupplier = defaultSupplier;
+        this.defaultInput = defaultInput;
         this.errorHandlers = errorHandlers;
+        this.optional = optional;
     }
 
     /**
@@ -87,14 +94,19 @@ public class CommandArgumentDefinition<T> {
 
     public boolean hasDefault()
     {
-        return defaultSupplier != null;
+        return defaultInput != null;
     }
 
     public @NotNull CommandArgument<T> getDefault(CommandEnvironment env) throws IllegalStateException, ArgumentParsingException
     {
-        if (defaultSupplier == null)
+        if (defaultInput == null)
             throw new IllegalStateException("Not default supplier provided");
-        T value = defaultSupplier.apply(env);
+        T value = parser.apply(defaultInput, env);
         return wrapValue(value);
+    }
+
+    public boolean isOptional()
+    {
+        return optional;
     }
 }

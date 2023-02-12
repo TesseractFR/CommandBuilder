@@ -1,9 +1,14 @@
 package onl.tesseract.commandBuilder;
 
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
+import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
+import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -21,8 +26,10 @@ import java.util.stream.Collectors;
  * @see CommandContext Annotation-based command builder
  */
 public class CommandBuilder {
-    ArrayList<CommandArgument> arguments = new ArrayList<>();
-    ArrayList<CommandArgument> optionalArguments = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(CommandContext.class);
+
+    List<CommandArgumentDefinition<?>> arguments = new ArrayList<>();
+    List<CommandArgumentDefinition<?>> optionalArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     // Use linked hashmap to keep insertion order
     // Useful to display help messages with subcommands in a pertinent order
@@ -66,25 +73,25 @@ public class CommandBuilder {
         this.name = name;
         if (!generateDefaultHelp)
             return;
-        subCommand(new CommandBuilder("help", false)
-                .description("Obtenir de l'aide sur une commande.")
-                .withOptionalArg(new CommandArgument("page", Integer.class)
-                        .supplier((input, env) -> Integer.parseInt(input))
-                        .defaultValue(env -> 1)
-                        .error(NumberFormatException.class, "Nombre invalide"))
-                .command(env -> {
-                    Integer page = env.get("page", Integer.class);
-                    if (page == null)
-                        page = 1;
-                    try
-                    {
-                        env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
-                    }
-                    catch (IllegalArgumentException e)
-                    {
-                        env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
-                    }
-                }));
+//        subCommand(new CommandBuilder("help", false)
+//                .description("Obtenir de l'aide sur une commande.")
+//                .withOptionalArg(new CommandArgument("page", Integer.class)
+//                        .supplier((input, env) -> Integer.parseInt(input))
+//                        .defaultValue(env -> 1)
+//                        .error(NumberFormatException.class, "Nombre invalide"))
+//                .command(env -> {
+//                    Integer page = env.get("page", Integer.class);
+//                    if (page == null)
+//                        page = 1;
+//                    try
+//                    {
+//                        env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
+//                    }
+//                    catch (IllegalArgumentException e)
+//                    {
+//                        env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
+//                    }
+//                }));
     }
 
     public String getName()
@@ -123,10 +130,23 @@ public class CommandBuilder {
      *
      * @return this
      */
-    public CommandBuilder withArg(CommandArgument argument)
+    public CommandBuilder withArg(CommandArgumentDefinition<?> argument)
     {
         arguments.add(argument);
         return this;
+    }
+
+    public CommandBuilder withArg(CommandArgument<?> arg)
+    {
+        try
+        {
+            CommandArgumentBuilder<?> builder = new CommandArgumentBuilder<>((Class<? extends CommandArgument<?>>) arg.getClass(), arg.getName());
+            return withArg(builder.build());
+        }
+        catch (ReflectiveOperationException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -136,7 +156,7 @@ public class CommandBuilder {
      *
      * @return this
      */
-    public CommandBuilder withOptionalArg(CommandArgument optArg)
+    public CommandBuilder withOptionalArg(CommandArgumentDefinition<?> optArg)
     {
         if (!subCommands.isEmpty() && (subCommands.size() > 1 || !subCommands.containsKey("help")))
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
@@ -229,9 +249,9 @@ public class CommandBuilder {
     private String helpGetArgList()
     {
         StringJoiner argListJoiner = new StringJoiner(" ");
-        for (CommandArgument arg : arguments)
+        for (CommandArgumentDefinition<?> arg : arguments)
             argListJoiner.add("{" + arg.getName() + "}");
-        for (CommandArgument arg : optionalArguments)
+        for (CommandArgumentDefinition<?> arg : optionalArguments)
             argListJoiner.add("[" + arg.getName() + "]");
         return argListJoiner.toString();
     }
@@ -267,10 +287,18 @@ public class CommandBuilder {
      */
     public void execute(CommandSender sender, String[] args)
     {
-        execute(sender, new CommandEnvironment(sender), args);
+        try
+        {
+            execute(sender, new CommandEnvironment(sender), args);
+        }
+        catch (CommandExecutionException e)
+        {
+            logger.error("Unhandled exception during command execution", e);
+            sender.sendMessage(ChatColor.RED + "Une erreur est survenue pendant l'exécution de la commande. Contactez un administrateur pour obtenir de l'aide.");
+        }
     }
 
-    public void execute(CommandSender sender, CommandEnvironment env, String[] args)
+    public void execute(CommandSender sender, CommandEnvironment env, String[] args) throws CommandExecutionException
     {
         if (playerOnly && !(sender instanceof Player))
         {
@@ -297,16 +325,16 @@ public class CommandBuilder {
         int i;
         for (i = 0; i < arguments.size(); i++)
         {
-            if (arguments.get(i) instanceof TextCommandArgument)
+            if (arguments.get(i).getType().equals(TextCommandArgument.class))
             {
                 String[] textParts = Arrays.copyOfRange(args, i, args.length);
                 StringJoiner text = new StringJoiner(" ");
                 for (String part : textParts)
                     text.add(part);
-                parseArgument(env, arguments.get(i), text.toString(), sender);
+                parseArgument(env, arguments.get(i), text.toString());
                 break;
             }
-            if (!parseArgument(env, arguments.get(i), args[i], sender))
+            if (!parseArgument(env, arguments.get(i), args[i]))
                 return;
         }
 
@@ -315,7 +343,7 @@ public class CommandBuilder {
         {
             for (i = 0; i + arguments.size() < args.length && i < optionalArguments.size(); i++)
             {
-                if (!parseArgument(env, optionalArguments.get(i), args[i + arguments.size()], sender))
+                if (!parseArgument(env, optionalArguments.get(i), args[i + arguments.size()]))
                     return;
             }
             // Default values
@@ -351,31 +379,12 @@ public class CommandBuilder {
         return subCommands.getOrDefault(name, subCommandsAliases.get(name));
     }
 
-    private boolean parseArgument(CommandEnvironment env, CommandArgument argument, String input, CommandSender sender)
+    private boolean parseArgument(CommandEnvironment env, CommandArgumentDefinition<?> argument, String input) throws ArgumentParsingException
     {
-        if (argument.supplier == null)
-            throw new IllegalStateException("Missing argument parser (supplier).");
-        Object parsed;
-        try
-        {
-            parsed = argument.supplier.apply(input, env);
-        }
-        catch (Exception e)
-        {
-            if (argument.hasError(e.getClass()))
-            {
-                sender.sendMessage(ChatColor.RED + argument.onError(e));
-            }
-            else
-            {
-                sender.sendMessage(ChatColor.RED
-                        + "Une erreur inattendue est survenue pendant l'execution de cette commande. Contactez un administrateur pour obtenir de l'aide.");
-                System.err.println("Error while executing command");
-                e.printStackTrace();
-            }
+        CommandArgument<?> instance = argument.newInstance(input, env);
+        if (instance == null)
             return false;
-        }
-        env.set(argument.getName(), parsed);
+        env.set(argument.getName(), instance);
         return true;
     }
 
@@ -415,13 +424,13 @@ public class CommandBuilder {
         int i = 0;
         for (; i < args.length - 1; i++)
         {
-            Optional<CommandArgument> arg = getAnyArgumentAt(i);
+            Optional<CommandArgumentDefinition<?>> arg = getAnyArgumentAt(i);
 
             if (arg.isPresent())
             {
                 try
                 {
-                    env.set(arg.get().getName(), arg.get().supplier.apply(args[i], env));
+                    env.set(arg.get().getName(), arg.get().newInstance(args[i], env));
                 }
                 catch (Exception e)
                 {
@@ -442,7 +451,7 @@ public class CommandBuilder {
 
         if (arg.isPresent())
         {
-            List<String> res = arg.get().tabComplete(sender, env);
+            List<String> res = arg.get().tabComplete(finalArg, env);
             if (res == null)
                 return null;
             return res.stream()
@@ -465,9 +474,9 @@ public class CommandBuilder {
         return null;
     }
 
-    private Optional<CommandArgument> getAnyArgumentAt(int index)
+    private Optional<CommandArgumentDefinition<?>> getAnyArgumentAt(int index)
     {
-        CommandArgument arg = null;
+        CommandArgumentDefinition<?> arg = null;
         if (index < arguments.size())
             arg = arguments.get(index);
         else if (index < optionalArguments.size())

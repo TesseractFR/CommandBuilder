@@ -1,141 +1,50 @@
 package onl.tesseract.commandBuilder;
 
-import org.bukkit.command.CommandSender;
+import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.Objects;
 
 /**
- * Represents a command argument, with a name, a parsing method and a tab completer
+ * Represents an instance of a command argument
  */
-public class CommandArgument {
-    private String name;
-    public final Class<?> clazz;
-    BiFunction<String, CommandEnvironment, Object> supplier;
-    private final Map<Class<? extends Throwable>, Function<String, String>> errors;
-    private BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion;
-    private Function<CommandEnvironment, Object> def;
+public abstract class CommandArgument<T> {
 
-    /**
-     * Create a new command argument, to be used with CommandBuilder
-     *
-     * @param name name of the argument.
-     * @param clazz Type
-     */
-    public CommandArgument(String name, Class<?> clazz)
+    @NotNull
+    private final String name;
+    @Nullable
+    private T value;
+
+    public CommandArgument(@NotNull String name)
     {
         this.name = name;
-        this.clazz = clazz;
-        ArgumentAnnotationReader reader = new ArgumentAnnotationReader(this);
-        supplier = reader.readParser();
-        errors = reader.readErrorHandlers();
-        error(CommandArgumentException.class, msg -> msg);
-        tabCompletion = reader.readCompletion();
     }
 
-    public CommandArgument(String name)
-    {
-        this(name, void.class);
-    }
-
-    public CommandArgument name(String name)
-    {
-        this.name = name;
-        return this;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * Set the parser function
-     *
-     * @param supplier Parser function, taking the raw input and environment, returning the parsed value
-     *
-     * @return this
-     */
-    public CommandArgument supplier(BiFunction<String, CommandEnvironment, Object> supplier)
-    {
-        this.supplier = supplier;
-        return this;
-    }
-
-    /**
-     * Add an error message to be sent to the CommandSender in case of exception during parsing.
-     *
-     * @param throwable Type of exception
-     * @param message Message
-     *
-     * @return this
-     */
-    public CommandArgument error(Class<? extends Throwable> throwable, String message)
-    {
-        errors.put(throwable, any -> message);
-        return this;
-    }
-
-    public CommandArgument error(Class<? extends Throwable> throwable, Function<String, String> message)
-    {
-        errors.put(throwable, message);
-        return this;
-    }
-
-    public String onError(Throwable throwable)
-    {
-        return errors.get(throwable.getClass()).apply(throwable.getMessage());
-    }
-
-    public boolean hasError(Class<? extends Throwable> throwable)
-    {
-        return errors.containsKey(throwable);
-    }
-
-    /**
-     * Define the tab completion for this command
-     *
-     * @param tabCompletion Function
-     *
-     * @return this
-     */
-    public CommandArgument tabCompletion(BiFunction<CommandSender, CommandEnvironment, List<String>> tabCompletion)
-    {
-        this.tabCompletion = tabCompletion;
-        return this;
-    }
+    @NotNull
+    protected abstract T parser(@NotNull String input, @NotNull CommandEnvironment environment);
 
     @Nullable
-    public List<String> tabComplete(CommandSender sender, CommandEnvironment env)
+    protected abstract List<String> tabCompletion(@NotNull String input, @NotNull CommandEnvironment environment);
+
+    protected abstract void errors(ArgumentErrorHandlers handlers);
+
+    @NotNull
+    public final T get()
     {
-        return tabCompletion == null ? null : tabCompletion.apply(sender, env);
+        return Objects.requireNonNull(value);
     }
 
-    public boolean hasDefault()
+    public CommandArgument<T> setValue(@NotNull final T value)
     {
-        return def != null;
-    }
-
-    /**
-     * Set a default value for optional arguments. If the argument is not given by the player, the default value is used.
-     */
-    public CommandArgument defaultValue(Function<CommandEnvironment, Object> def)
-    {
-        this.def = def;
+        this.value = value;
         return this;
     }
 
-    public CommandArgument defaultValue(String def)
+    @NotNull
+    public final String getName()
     {
-        this.def = env -> this.supplier.apply(def, env);
-        return this;
-    }
-
-    public @Nullable Object getDefault(CommandEnvironment env)
-    {
-        return def == null ? null : def.apply(env);
+        return name;
     }
 }

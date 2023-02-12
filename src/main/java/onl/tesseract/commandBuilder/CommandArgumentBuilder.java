@@ -1,7 +1,9 @@
-package onl.tesseract.commandBuilder.v2;
+package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.CommandEnvironment;
+import lombok.Setter;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
+import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
@@ -9,19 +11,24 @@ import java.util.function.Function;
 public class CommandArgumentBuilder<T> {
 
     private final Class<? extends CommandArgument<T>> argumentClass;
+    @Setter
+    private boolean optional = false;
+    @Setter
+    private String defaultInput;
+    @NotNull
+    private final String name;
 
-    public CommandArgumentBuilder(final Class<? extends CommandArgument<T>> argumentClass)
+    public CommandArgumentBuilder(final Class<? extends CommandArgument<?>> argumentClass, @NotNull String name)
     {
-        this.argumentClass = argumentClass;
+        this.argumentClass = (Class<? extends CommandArgument<T>>) argumentClass;
+        this.name = name;
     }
 
     public CommandArgumentDefinition<T> build() throws ReflectiveOperationException
     {
-        String name = "TODO";
-
         Constructor<? extends CommandArgument<T>> constructor = argumentClass.getDeclaredConstructor(String.class);
+        constructor.setAccessible(true);
         CommandArgument<T> argumentInstance = constructor.newInstance(name);
-        Function<CommandEnvironment, T> defSupplier = env -> null;
 
         ArgumentErrorHandlers errorHandlers = new ArgumentErrorHandlers();
         argumentInstance.errors(errorHandlers);
@@ -30,7 +37,8 @@ public class CommandArgumentBuilder<T> {
                 argumentClass,
                 argumentInstance::parser,
                 argumentInstance::tabCompletion,
-                defSupplier,
-                errorHandlers);
+                defaultInput,
+                errorHandlers,
+                optional);
     }
 }

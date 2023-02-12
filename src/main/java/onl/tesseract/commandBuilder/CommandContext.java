@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -64,7 +65,7 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
 
     private static final Map<Class<?>, Object> classToInstance = new HashMap<>();
 
-    CommandBuilder provideForClass(final Object commandBuilder)
+    CommandBuilder provideForClass(final Object commandBuilder) throws CommandBuildException
     {
         ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder, this);
         CommandBuilder command = provide(reader);
@@ -75,12 +76,12 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
         return command;
     }
 
-    CommandBuilder provideFor(final Object instance, final Method method)
+    CommandBuilder provideFor(final Object instance, final Method method) throws CommandBuildException
     {
         return provide(new MethodAnnotationReader(instance, method, this));
     }
 
-    CommandBuilder provide(AnnotationReader reader)
+    CommandBuilder provide(AnnotationReader reader) throws CommandBuildException
     {
         CommandBuilder res = new CommandBuilder(reader.readName())
                 .permission(reader.readPermission())
@@ -88,9 +89,9 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
                 .playerOnly(reader.readPlayerOnly())
                 .command(reader.readCommandBody());
 
-        Map<CommandArgument, Boolean> arguments = reader.readArguments();
-        arguments.forEach((arg, optional) -> {
-            if (optional)
+        List<CommandArgumentDefinition<?>> arguments = reader.readArguments();
+        arguments.forEach(arg -> {
+            if (arg.isOptional())
                 res.withOptionalArg(arg);
             else
                 res.withArg(arg);

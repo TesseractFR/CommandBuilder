@@ -2,7 +2,7 @@ package onl.tesseract.commandBuilder.v2.argument;
 
 import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
-import onl.tesseract.commandBuilder.v2.CommandArgument;
+import onl.tesseract.commandBuilder.CommandArgument;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
