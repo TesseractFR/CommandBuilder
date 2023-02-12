@@ -54,7 +54,7 @@ public class MethodInvoker {
             }
             else if (envAnnotation != null)
             {
-                Object o = env.get(envAnnotation.key(), Object.class);
+                Object o = env.get(envAnnotation.key(), parameter.getType());
                 objects[i] = o;
             }
             else if (parameter.getType() == CommandEnvironment.class)

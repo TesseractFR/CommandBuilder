@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @see CommandContext Annotation-based command builder
  */
 public class CommandBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(CommandContext.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommandBuilder.class);
 
     List<CommandArgumentDefinition<?>> arguments = new ArrayList<>();
     List<CommandArgumentDefinition<?>> optionalArguments = new ArrayList<>();
@@ -348,7 +348,7 @@ public class CommandBuilder {
             }
             // Default values
             for (; i < optionalArguments.size(); i++)
-                env.set(optionalArguments.get(i).getName(), optionalArguments.get(i).getDefault(env));
+                env.setArgument(optionalArguments.get(i).getName(), optionalArguments.get(i).getDefault(env));
         }
         else if (i < args.length && (subCommands.containsKey(args[i]) || subCommandsAliases.containsKey(args[i])))
         {
@@ -384,7 +384,7 @@ public class CommandBuilder {
         CommandArgument<?> instance = argument.newInstance(input, env);
         if (instance == null)
             return false;
-        env.set(argument.getName(), instance);
+        env.setArgument(argument.getName(), instance);
         return true;
     }
 
@@ -430,7 +430,7 @@ public class CommandBuilder {
             {
                 try
                 {
-                    env.set(arg.get().getName(), arg.get().newInstance(args[i], env));
+                    env.setArgument(arg.get().getName(), arg.get().newInstance(args[i], env));
                 }
                 catch (Exception e)
                 {

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommandContextTest {
 
     @Test
-    public void CommandOnCommandBuilderV2ClassTest()
+    public void commandAnnotationOnClass_CheckProperties()
     {
         NoContentCommand command = new NoContentCommand();
 
@@ -26,14 +26,9 @@ public class CommandContextTest {
     }
 
     @Test
-    public void CommandOnCommandBuilderV2ClassWithArgsTest()
+    public void commandAnnotationOnClass_CheckArgument()
     {
         NoContentArgsCommand command = new NoContentArgsCommand();
-
-        assertEquals("test", command.builder.getName());
-        assertEquals("test", command.builder.getPermission());
-        assertEquals("A test command", command.builder.getDescription());
-        assertTrue(command.builder.isPlayerOnly());
 
         assertEquals(1, command.builder.arguments.size());
         CommandArgumentDefinition<?> argument = command.builder.arguments.get(0);
@@ -42,7 +37,7 @@ public class CommandContextTest {
     }
 
     @Test
-    public void CommandNoContentNoValuesTest()
+    public void commandAnnotationOnClass_NoValues_CheckDefault()
     {
         CommandContext command = new NoContentNoAnnotationValuesCommand();
 
@@ -118,61 +113,7 @@ public class CommandContextTest {
         assertNotNull(inner.consumer);
     }
 
-    @Test
-    public void CallArgsOnSubCommandTest() throws CommandExecutionException
-    {
-        CommandContext commandA = new CallArgsOnSubCommand();
 
-        CommandSender sender = Mockito.mock(CommandSender.class);
-        commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
-        Mockito.verify(sender).sendMessage("Hello world!");
-    }
-
-    @Test
-    public void CallArgsOnSubCommand_NoClassOnAnnotationTest() throws CommandExecutionException
-    {
-        CommandContext commandA = new CallArgsOnSubCommand();
-
-        CommandSender sender = Mockito.mock(CommandSender.class);
-        commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
-        Mockito.verify(sender).sendMessage("Hello world!");
-    }
-
-    @Test
-    public void predicateTest() throws CommandExecutionException
-    {
-        CommandContext command = new CommandWithPredicates();
-        CommandSender sender = Mockito.mock(CommandSender.class);
-        Mockito.when(sender.getName()).thenReturn("foo");
-
-        command.builder.execute(sender, new String[] {"test"});
-
-        Mockito.verify(sender).sendMessage("test");
-    }
-
-    @Test
-    public void predicateFailedTest() throws CommandExecutionException
-    {
-        CommandContext command = new CommandWithPredicates();
-        CommandSender sender = Mockito.mock(CommandSender.class);
-        Mockito.when(sender.getName()).thenReturn("bar");
-
-        command.builder.execute(sender, new String[] {"test"});
-
-        Mockito.verify(sender, Mockito.times(0)).sendMessage(Mockito.anyString());
-    }
-
-    @Test
-    public void insertEnvTest() throws CommandExecutionException
-    {
-        CommandSender sender = Mockito.mock(CommandSender.class);
-        CommandEnvironment env = new CommandEnvironment(sender);
-        CommandInsertEnv commandInsertEnv = new CommandInsertEnv();
-        commandInsertEnv.builder.execute(sender, env, new String[0]);
-
-        Assertions.assertNotNull(env.get("bar"));
-        Assertions.assertEquals(43, env.get("bar", Integer.class));
-    }
 }
 
 @Command

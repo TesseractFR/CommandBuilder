@@ -10,8 +10,9 @@ import java.util.Map;
  * Execution environment of a CommandBuilder. Holds parsed arguments.
  */
 public class CommandEnvironment {
-    final CommandSender sender;
-    HashMap<String, Object> args = new HashMap<>();
+    private final CommandSender sender;
+    private final HashMap<String, Object> values = new HashMap<>();
+    private final Map<String, CommandArgument<?>> argumentMap = new HashMap<>();
 
     public CommandEnvironment(final CommandSender sender)
     {
@@ -29,22 +30,34 @@ public class CommandEnvironment {
      */
     public <T> T get(String argName, Class<T> type)
     {
-        return type.cast(args.get(argName));
+        if (values.containsKey(argName))
+            return type.cast(values.get(argName));
+        else if (argumentMap.containsKey(argName))
+        {
+            CommandArgument<?> argument = argumentMap.get(argName);
+            if (type.isPrimitive())
+                return (T) argument.get();
+            if (argument.get().getClass().equals(type))
+                return type.cast(argument.get());
+            else
+                return type.cast(argument);
+        }
+        return null;
     }
 
     public Object get(String argName)
     {
-        return args.get(argName);
-    }
-
-    public <T> T getOrDefault(String argName, Class<T> type, T def)
-    {
-        return type.cast(args.getOrDefault(argName, def));
+        return values.getOrDefault(argName, argumentMap.get(argName));
     }
 
     public void set(String argName, Object value)
     {
-        args.put(argName, value);
+        values.put(argName, value);
+    }
+
+    public void setArgument(String argName, CommandArgument<?> arg)
+    {
+        argumentMap.put(argName, arg);
     }
 
     public CommandSender getSender()
