@@ -46,7 +46,7 @@ public class MethodInvoker {
             {
                 if (includeEnvArguments)
                 {
-                    Object o = env.get(annotation.label());
+                    Object o = env.get(annotation.label(), parameter.getType());
                     objects[i] = o;
                 }
                 else

@@ -9,6 +9,8 @@ import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -47,15 +49,11 @@ final class MethodAnnotationReader extends AnnotationReader {
             Class<? extends CommandArgument<?>> type = argAnnotation.clazz();
             if (type == Argument.None.class)
             {
-                try
-                {
-                    type = (Class<? extends CommandArgument<?>>) parameter.getType();
-                }
-                catch (ClassCastException e)
-                {
-                    throw new InvalidArgumentTypeException(parameter.getType().getSimpleName() + " is not a valid argument type", e);
-                }
+                if (!CommandArgument.class.isAssignableFrom(parameter.getType()))
+                    throw new InvalidArgumentTypeException(parameter.getType().getSimpleName() + " is not a valid argument type");
+                type = (Class<? extends CommandArgument<?>>) parameter.getType();
             }
+
             CommandArgumentBuilder<?> argumentBuilder = new CommandArgumentBuilder<>(type, argAnnotation.label());
             argumentBuilder.setOptional(argAnnotation.optional());
             argumentBuilder.setDefaultInput(argAnnotation.def());

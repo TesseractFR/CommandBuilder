@@ -4,11 +4,13 @@ import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.annotation.Env;
+import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import onl.tesseract.commandBuilder.sample.FloatArgument;
 import onl.tesseract.commandBuilder.v2.argument.IntegerArgument;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
@@ -52,6 +54,28 @@ public class ArgumentTest {
         new ArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
+    }
+
+    @Test
+    public void exec_ArgumentOnMethod_ClazzSpecifiedAndCastToValueType()
+    {
+        CommandSender sender = mock(CommandSender.class);
+
+        new ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType().builder.execute(sender, new String[] {"test", "12"});
+
+        verify(sender, times(1)).sendMessage("12");
+    }
+
+    @Test
+    public void exec_ArgumentOnMethod_InvalidType()
+    {
+        Assertions.assertThrows(InvalidArgumentTypeException.class, ArgumentOnSubCommandFunctionInvalidType::new);
+    }
+
+    @Test
+    public void exec_ArgumentOnMethod_InvalidClassType()
+    {
+        Assertions.assertThrows(InvalidArgumentTypeException.class, ArgumentOnSubCommandFunctionInvalidClassType::new);
     }
 
     @Test
@@ -131,6 +155,33 @@ class ArgumentOnSubCommandFunction extends CommandContext {
     public void testCommand(@Argument(label = "arg") IntegerArgument integerArgument, CommandSender sender)
     {
         sender.sendMessage(integerArgument.get() + "");
+    }
+}
+
+@Command
+class ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType extends CommandContext {
+    @Command
+    public void testCommand(@Argument(label = "arg", clazz = IntegerArgument.class) int integer, CommandSender sender)
+    {
+        sender.sendMessage(integer + "");
+    }
+}
+
+@Command
+class ArgumentOnSubCommandFunctionInvalidType extends CommandContext {
+    @Command
+    public void testCommand(@Argument(label = "arg") int integer, CommandSender sender)
+    {
+        sender.sendMessage(integer + "");
+    }
+}
+
+@Command
+class ArgumentOnSubCommandFunctionInvalidClassType extends CommandContext {
+    @Command
+    public void testCommand(@Argument(label = "arg") String integer, CommandSender sender)
+    {
+        sender.sendMessage(integer + "");
     }
 }
 
