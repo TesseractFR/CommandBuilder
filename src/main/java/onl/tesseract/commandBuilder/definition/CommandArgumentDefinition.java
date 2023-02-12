@@ -94,7 +94,7 @@ public class CommandArgumentDefinition<T> {
 
     public boolean hasDefault()
     {
-        return defaultInput != null;
+        return defaultInput != null && !defaultInput.isEmpty();
     }
 
     public @NotNull CommandArgument<T> getDefault(CommandEnvironment env) throws IllegalStateException, ArgumentParsingException

@@ -348,7 +348,11 @@ public class CommandBuilder {
             }
             // Default values
             for (; i < optionalArguments.size(); i++)
-                env.setArgument(optionalArguments.get(i).getName(), optionalArguments.get(i).getDefault(env));
+            {
+                CommandArgumentDefinition<?> optArg = optionalArguments.get(i);
+                if (optArg.hasDefault())
+                    env.setArgument(optArg.getName(), optArg.getDefault(env));
+            }
         }
         else if (i < args.length && (subCommands.containsKey(args[i]) || subCommandsAliases.containsKey(args[i])))
         {
