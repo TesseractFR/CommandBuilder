@@ -334,6 +334,17 @@ public class CommandBuilder {
             return false;
         }
 
+        if (context.hasNextArg() && hasCommand(context.peekNextArg()))
+        {
+            executeEnvInserters(env);
+            CommandBuilder subCommand = getSubCommandOrAlias(context.nextArg());
+            if (subCommand.hasPermission(sender))
+                return subCommand.execute(sender, context);
+            else
+                sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
+            return false;
+        }
+
         // Parse mandatory arguments
         int i;
         for (i = 0; i < arguments.size(); i++)
@@ -395,6 +406,11 @@ public class CommandBuilder {
         else
             help(sender);
         return true;
+    }
+
+    private boolean hasCommand(String name)
+    {
+        return subCommands.containsKey(name) || subCommandsAliases.containsKey(name);
     }
 
     private void executeEnvInserters(CommandEnvironment env)
