@@ -20,7 +20,7 @@ public abstract class CommandArgument<T> {
         this.name = name;
     }
 
-    public abstract void define(@NotNull CommandArgumentBuilderSteps.Parser<T> builder);
+    public abstract void define(CommandArgumentBuilderSteps.Parser<T> builder);
 
     @NotNull
     public final T get()

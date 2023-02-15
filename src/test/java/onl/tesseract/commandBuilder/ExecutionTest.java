@@ -50,7 +50,7 @@ public class ExecutionTest {
         CommandSender sender = mock(CommandSender.class);
         CommandEnvironment env = new CommandEnvironment(sender);
         CommandInsertEnv commandInsertEnv = new CommandInsertEnv();
-        commandInsertEnv.builder.execute(sender, env, new String[0]);
+        commandInsertEnv.builder.execute(sender, new CommandExecutionContext(env, commandInsertEnv.builder, new String[0]));
 
         Assertions.assertNotNull(env.get("bar"));
         Assertions.assertEquals(43, env.get("bar", Integer.class));

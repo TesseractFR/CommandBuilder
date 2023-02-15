@@ -301,41 +301,38 @@ public class CommandBuilder {
      * @param sender Command sender
      * @param args Sent command arguments
      */
-    public void execute(CommandSender sender, String[] args)
+    public boolean execute(CommandSender sender, String[] args)
     {
         try
         {
-            execute(sender, new CommandEnvironment(sender), args);
+            return execute(sender, new CommandExecutionContext(new CommandEnvironment(sender), this, args));
         }
         catch (CommandExecutionException e)
         {
             logger.error("Unhandled exception during command execution", e);
             sender.sendMessage(ChatColor.RED + "Une erreur est survenue pendant l'exécution de la commande. Contactez un administrateur pour obtenir de l'aide.");
+            return false;
         }
     }
 
-    public void execute(CommandSender sender, CommandEnvironment env, String[] args) throws CommandExecutionException
+    public boolean execute(CommandSender sender, CommandExecutionContext context) throws CommandExecutionException
     {
         if (playerOnly && !(sender instanceof Player))
         {
             sender.sendMessage(ChatColor.RED + "This command is player-only");
-            return;
+            return false;
         }
+        CommandEnvironment env = context.getEnvironment();
         for (var predicate : predicates)
         {
             if (!predicate.test(env))
-                return;
+                return false;
         }
-        if (args.length < arguments.size())
+        if (context.getArgs().length < arguments.size())
         {
             help(sender);
-            return;
+            return false;
         }
-        //        if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
-        //        {
-        //            help(sender);
-        //            return;
-        //        }
 
         // Parse mandatory arguments
         int i;
@@ -343,55 +340,52 @@ public class CommandBuilder {
         {
             if (arguments.get(i).getType().equals(TextCommandArgument.class))
             {
-                String[] textParts = Arrays.copyOfRange(args, i, args.length);
+                String[] textParts = Arrays.copyOfRange(context.getArgs(), i, context.getArgs().length);
                 StringJoiner text = new StringJoiner(" ");
                 for (String part : textParts)
                     text.add(part);
                 parseArgument(env, arguments.get(i), text.toString());
                 break;
             }
-            if (i >= args.length)
+            if (i >= context.getArgs().length)
             {
                 help(sender);
-                return;
+                return false;
             }
-            if (!parseArgument(env, arguments.get(i), args[i]))
-                return;
+            if (!parseArgument(env, arguments.get(i), context.nextArg()))
+                return false;
         }
 
         // Parse optional arguments
         if (!optionalArguments.isEmpty())
         {
-            for (i = 0; i + arguments.size() < args.length && i < optionalArguments.size(); i++)
+            for (final CommandArgumentDefinition<?> optionalArg : optionalArguments)
             {
-                if (!parseArgument(env, optionalArguments.get(i), args[i + arguments.size()]))
-                    return;
-            }
-            // Default values
-            for (; i < optionalArguments.size(); i++)
-            {
-                CommandArgumentDefinition<?> optArg = optionalArguments.get(i);
-                if (optArg.hasDefault())
-                    env.setArgument(optArg.getName(), optArg.getDefault(env));
+                if (!context.hasNextArg())
+                {
+                    if (optionalArg.hasDefault())
+                        env.setArgument(optionalArg.getName(), optionalArg.getDefault(env));
+                }
+                else if (!parseArgument(env, optionalArg, context.nextArg()))
+                    return false;
             }
         }
-        else if (i < args.length && (subCommands.containsKey(args[i]) || subCommandsAliases.containsKey(args[i])))
+        else if (context.hasNextArg() && (subCommands.containsKey(context.peekNextArg()) || subCommandsAliases.containsKey(context.peekNextArg())))
         {
             executeEnvInserters(env);
-            CommandBuilder subCommand = getSubCommandOrAlias(args[i]);
+            CommandBuilder subCommand = getSubCommandOrAlias(context.nextArg());
             if (subCommand.hasPermission(sender))
-                subCommand.execute(sender, env, Arrays.copyOfRange(args, i + 1, args.length));
+                return subCommand.execute(sender, context);
             else
                 sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
-            return;
+            return false;
         }
-        else if (i < args.length && !bodyArguments.isEmpty())
+        else if (context.hasNextArg() && !bodyArguments.isEmpty())
         {
-            for (int j = 0; i < args.length && j < bodyArguments.size(); j++)
+            for (final CommandArgumentDefinition<?> bodyArg : bodyArguments)
             {
-                if (!parseArgument(env, bodyArguments.get(j), args[i]))
-                    return;
-                i++;
+                if (!parseArgument(env, bodyArg, context.nextArg()))
+                    return false;
             }
         }
 
@@ -400,6 +394,7 @@ public class CommandBuilder {
             consumer.accept(env);
         else
             help(sender);
+        return true;
     }
 
     private void executeEnvInserters(CommandEnvironment env)

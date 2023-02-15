@@ -77,6 +77,7 @@ public class CommandArgumentDefinition<T> {
         try
         {
             Constructor<? extends CommandArgument<T>> constructor = this.type.getDeclaredConstructor(String.class);
+            constructor.setAccessible(true);
             return (U) constructor.newInstance(this.name).setValue(value);
         }
         catch (SecurityException | ReflectiveOperationException e)
