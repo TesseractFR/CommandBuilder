@@ -38,4 +38,9 @@ public class CommandExecutionContext {
     {
         return currentArgIndex < args.length;
     }
+
+    public int countRemainingArgs()
+    {
+        return args.length - currentArgIndex;
+    }
 }

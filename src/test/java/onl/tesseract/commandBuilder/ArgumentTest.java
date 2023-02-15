@@ -7,19 +7,28 @@ import onl.tesseract.commandBuilder.annotation.Env;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
 public class ArgumentTest {
+    private CommandSender sender;
+
+    @Before
+    public void setup()
+    {
+        sender = mock(CommandSender.class);
+    }
+
     @Test
     public void CallArgsOnSubCommand_NoClassOnAnnotationTest()
     {
         CommandContext commandA = new CallArgsImplicitTypeOnSubCommand();
 
-        CommandSender sender = mock(CommandSender.class);
         commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
         verify(sender).sendMessage("Hello world!");
     }
@@ -27,8 +36,6 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnClass_AccessArgumentViaEnv()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new AccessArgumentViaEnv().builder.execute(sender, new String[] {"12"});
 
         verify(sender, times(1)).sendMessage("12");
@@ -37,8 +44,6 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnClass_AccessArgumentViaEnv_ImplicitGetValue()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new AccessArgumentViaEnvImplicitGetValue().builder.execute(sender, new String[] {"12"});
 
         verify(sender, times(1)).sendMessage("12");
@@ -47,8 +52,6 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethod()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new ArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
@@ -57,8 +60,6 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethod_ClazzSpecifiedAndCastToValueType()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType().builder.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
@@ -67,20 +68,18 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethod_InvalidType()
     {
-        Assertions.assertThrows(InvalidArgumentTypeException.class, ArgumentOnSubCommandFunctionInvalidType::new);
+        assertThrows(InvalidArgumentTypeException.class, ArgumentOnSubCommandFunctionInvalidType::new);
     }
 
     @Test
     public void exec_ArgumentOnMethod_InvalidClassType()
     {
-        Assertions.assertThrows(InvalidArgumentTypeException.class, ArgumentOnSubCommandFunctionInvalidClassType::new);
+        assertThrows(InvalidArgumentTypeException.class, ArgumentOnSubCommandFunctionInvalidClassType::new);
     }
 
     @Test
     public void exec_ArgumentOnMethodWithDefaultValue_Provided()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new ArgumentOnSubCommandFunctionDefaultValue().builder.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
@@ -89,8 +88,6 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethodWithDefaultValue_NotProvided()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new ArgumentOnSubCommandFunctionDefaultValue().builder.execute(sender, new String[] {"test"});
 
         verify(sender, times(1)).sendMessage("42");
@@ -99,8 +96,6 @@ public class ArgumentTest {
     @Test
     public void exec_OptionalArgumentOnMethod_Provided()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new OptionalArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
@@ -109,8 +104,6 @@ public class ArgumentTest {
     @Test
     public void exec_OptionalArgumentOnMethod_NotProvided()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new OptionalArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test"});
 
         verify(sender, times(1)).sendMessage("null");
@@ -119,11 +112,30 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnCommandBody()
     {
-        CommandSender sender = mock(CommandSender.class);
-
         new ArgumentOnCommandBody().builder.execute(sender, new String[] {"12"});
 
         verify(sender, times(1)).sendMessage("12");
+    }
+
+    @Test
+    public void exec_NotEnoughArguments_Error()
+    {
+        ArgumentOnSubCommandFunction command = new ArgumentOnSubCommandFunction();
+
+        boolean res = command.builder.execute(sender, new String[] {"test"});
+
+        assertFalse(res);
+    }
+
+    @Test
+    public void exec_TooManyArgs_NoError()
+    {
+        ArgumentOnSubCommandFunction command = new ArgumentOnSubCommandFunction();
+
+        boolean res = command.builder.execute(sender, new String[] {"test", "42", "87"});
+
+        assertTrue(res);
+        verify(sender).sendMessage("42");
     }
 }
 

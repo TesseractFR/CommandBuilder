@@ -328,7 +328,7 @@ public class CommandBuilder {
             if (!predicate.test(env))
                 return false;
         }
-        if (context.getArgs().length < arguments.size())
+        if (context.countRemainingArgs() < arguments.size())
         {
             help(sender);
             return false;
