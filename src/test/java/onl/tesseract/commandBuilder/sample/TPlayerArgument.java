@@ -2,13 +2,9 @@ package onl.tesseract.commandBuilder.sample;
 
 import onl.tesseract.TPlayer;
 import onl.tesseract.commandBuilder.CommandArgument;
-import onl.tesseract.commandBuilder.CommandEnvironment;
-import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
-import org.bukkit.entity.Player;
+import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class TPlayerArgument extends CommandArgument<TPlayer> {
     private TPlayer player;
@@ -25,20 +21,9 @@ public class TPlayerArgument extends CommandArgument<TPlayer> {
     }
 
     @Override
-    protected @NotNull TPlayer parser(@NotNull final String input, @NotNull final CommandEnvironment environment)
+    public void define(final CommandArgumentBuilderSteps.@NotNull Parser<TPlayer> builder)
     {
-        return player;
-    }
-
-    @Override
-    protected @Nullable List<String> tabCompletion(@NotNull final String input, @NotNull final CommandEnvironment environment)
-    {
-        return null;
-    }
-
-    @Override
-    protected void errors(final ArgumentErrorHandlers handlers)
-    {
-
+        builder.parser((input, env) -> player)
+               .tabCompleter((input, env) -> null);
     }
 }

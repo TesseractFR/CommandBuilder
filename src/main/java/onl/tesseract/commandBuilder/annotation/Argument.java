@@ -1,7 +1,9 @@
 package onl.tesseract.commandBuilder.annotation;
 
 import onl.tesseract.commandBuilder.CommandArgument;
+import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
 import onl.tesseract.commandBuilder.CommandEnvironment;
+import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,19 +43,7 @@ public @interface Argument {
         }
 
         @Override
-        protected @NotNull Void parser(@NotNull final String input, @NotNull final CommandEnvironment environment)
-        {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        protected @Nullable List<String> tabCompletion(@NotNull final String input, @NotNull final CommandEnvironment environment)
-        {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        protected void errors(final ArgumentErrorHandlers handlers)
+        public void define(final CommandArgumentBuilderSteps.@NotNull Parser<Void> builder)
         {
             throw new UnsupportedOperationException();
         }

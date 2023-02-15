@@ -25,8 +25,7 @@ class ArgumentTest {
     @Test
     void parseInteger_isNumber_ok() throws ArgumentParsingException, ReflectiveOperationException
     {
-        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class, "number");
-        CommandArgumentDefinition<Integer> definition = builder.build();
+        CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
 
         CommandArgument<Integer> arg = definition.newInstance("42", new CommandEnvironment(sender));
 
@@ -37,8 +36,7 @@ class ArgumentTest {
     @Test
     void parseInteger_invalidNumber_NotHandled() throws ReflectiveOperationException
     {
-        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class, "number");
-        CommandArgumentDefinition<Integer> definition = builder.build();
+        CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
 
         assertThrows(ArgumentParsingException.class, () -> definition.newInstance("-1", new CommandEnvironment(sender)));
     }
@@ -46,8 +44,7 @@ class ArgumentTest {
     @Test
     void parseInteger_invalidNumber_handled() throws ArgumentParsingException, ReflectiveOperationException
     {
-        CommandArgumentBuilder<Integer> builder = new CommandArgumentBuilder<>(IntegerArgument.class, "number");
-        CommandArgumentDefinition<Integer> definition = builder.build();
+        CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
 
         CommandArgument<Integer> arg = definition.newInstance("foo", new CommandEnvironment(sender));
 

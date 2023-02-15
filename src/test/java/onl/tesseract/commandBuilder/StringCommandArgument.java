@@ -1,8 +1,6 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -13,20 +11,9 @@ public class StringCommandArgument extends CommandArgument<String> {
     }
 
     @Override
-    protected @NotNull String parser(@NotNull final String input, @NotNull final CommandEnvironment environment)
+    public void define(final CommandArgumentBuilderSteps.@NotNull Parser<String> builder)
     {
-        return input;
-    }
-
-    @Override
-    protected @Nullable List<String> tabCompletion(@NotNull final String input, @NotNull final CommandEnvironment environment)
-    {
-        return List.of();
-    }
-
-    @Override
-    protected void errors(final ArgumentErrorHandlers handlers)
-    {
-
+        builder.parser((input, env) -> input)
+               .tabCompleter((input, env) -> List.of());
     }
 }

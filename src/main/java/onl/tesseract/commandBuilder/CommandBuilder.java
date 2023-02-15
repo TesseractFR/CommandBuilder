@@ -131,18 +131,17 @@ public class CommandBuilder {
      *
      * @return this
      */
-    public CommandBuilder withArg(CommandArgumentDefinition<?> argument)
+    public <T> CommandBuilder withArg(CommandArgumentDefinition<T> argument)
     {
         arguments.add(argument);
         return this;
     }
 
-    public CommandBuilder withArg(CommandArgument<?> arg)
+    public <T> CommandBuilder withArg(CommandArgument<T> arg)
     {
         try
         {
-            CommandArgumentBuilder<?> builder = new CommandArgumentBuilder<>((Class<? extends CommandArgument<?>>) arg.getClass(), arg.getName());
-            return withArg(builder.build());
+            return withArg(CommandArgumentBuilder.getBuilder((Class<? extends CommandArgument<T>>) arg.getClass(), arg.getName()).build());
         }
         catch (ReflectiveOperationException e)
         {

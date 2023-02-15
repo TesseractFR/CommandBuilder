@@ -1,10 +1,8 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -22,13 +20,7 @@ public abstract class CommandArgument<T> {
         this.name = name;
     }
 
-    @NotNull
-    protected abstract T parser(@NotNull String input, @NotNull CommandEnvironment environment);
-
-    @Nullable
-    protected abstract List<String> tabCompletion(@NotNull String input, @NotNull CommandEnvironment environment);
-
-    protected abstract void errors(ArgumentErrorHandlers handlers);
+    public abstract void define(@NotNull CommandArgumentBuilderSteps.Parser<T> builder);
 
     @NotNull
     public final T get()

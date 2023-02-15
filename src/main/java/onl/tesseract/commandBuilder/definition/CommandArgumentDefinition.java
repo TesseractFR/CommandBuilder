@@ -1,10 +1,10 @@
 package onl.tesseract.commandBuilder.definition;
 
 import lombok.Getter;
+import onl.tesseract.commandBuilder.CommandArgument;
 import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
-import onl.tesseract.commandBuilder.CommandArgument;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Definition of a type of argument, how to parse it, how to auto-complete it, and how to handle errors

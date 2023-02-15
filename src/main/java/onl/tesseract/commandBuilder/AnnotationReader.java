@@ -8,8 +8,6 @@ import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -61,7 +59,7 @@ abstract class AnnotationReader {
         return commandAnnotation.playerOnly();
     }
 
-    List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException, InvalidArgumentTypeException
+    List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException
     {
         Argument[] args = commandAnnotation.args();
         List<CommandArgumentDefinition<?>> res = new ArrayList<>();
@@ -70,8 +68,7 @@ abstract class AnnotationReader {
         {
             try
             {
-                CommandArgumentBuilder<?> argBuilder = new CommandArgumentBuilder<>(argAnnotation.clazz(), argAnnotation.label());
-
+                CommandArgumentBuilder<?> argBuilder = CommandArgumentBuilder.getBuilderNsm(argAnnotation.clazz(), argAnnotation.label());
                 argBuilder.setOptional(argAnnotation.optional());
                 argBuilder.setDefaultInput(argAnnotation.def());
                 res.add(argBuilder.build());
@@ -151,12 +148,12 @@ abstract class AnnotationReader {
                 type = (Class<? extends CommandArgument<?>>) parameter.getType();
             }
 
-            CommandArgumentBuilder<?> argumentBuilder = new CommandArgumentBuilder<>(type, argAnnotation.label());
-            argumentBuilder.setOptional(argAnnotation.optional());
-            argumentBuilder.setDefaultInput(argAnnotation.def());
             try
             {
-                args.add(argumentBuilder.build());
+                CommandArgumentBuilder<?> builder = CommandArgumentBuilder.getBuilderNsm(type, argAnnotation.label());
+                builder.setOptional(argAnnotation.optional());
+                builder.setDefaultInput(argAnnotation.def());
+                args.add(builder.build());
             }
             catch (Exception e)
             {

@@ -1,12 +1,14 @@
 package onl.tesseract.commandBuilder;
 
+import lombok.Getter;
 import lombok.Setter;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
-import java.util.function.Function;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public class CommandArgumentBuilder<T> {
 
@@ -17,6 +19,10 @@ public class CommandArgumentBuilder<T> {
     private String defaultInput;
     @NotNull
     private final String name;
+    @Getter
+    private final ArgumentErrorHandlers errorHandlers = new ArgumentErrorHandlers();
+    private BiFunction<String, CommandEnvironment, List<String>> tabCompleter;
+    private BiFunction<String, CommandEnvironment, T> parser;
 
     public CommandArgumentBuilder(final Class<? extends CommandArgument<?>> argumentClass, @NotNull String name)
     {
@@ -24,21 +30,46 @@ public class CommandArgumentBuilder<T> {
         this.name = name;
     }
 
-    public CommandArgumentDefinition<T> build() throws ReflectiveOperationException
+    public CommandArgumentDefinition<T> build()
     {
+        if (parser == null || tabCompleter == null)
+            throw new IllegalStateException("Missing parser and/or tabCompleter for argument " + argumentClass.getSimpleName());
+        return new CommandArgumentDefinition<>(name,
+                argumentClass,
+                parser,
+                tabCompleter,
+                defaultInput,
+                errorHandlers,
+                optional);
+    }
+
+    public CommandArgumentBuilder<T> setTabCompleter(final BiFunction<String, CommandEnvironment, List<String>> tabCompleter)
+    {
+        this.tabCompleter = tabCompleter;
+        return this;
+    }
+
+    public CommandArgumentBuilder<T> setParser(final BiFunction<String, CommandEnvironment, T> parser)
+    {
+        this.parser = parser;
+        return this;
+    }
+
+    public static <T> CommandArgumentBuilder<T> getBuilder(final Class<? extends CommandArgument<T>> argumentClass, @NotNull String name) throws ReflectiveOperationException
+    {
+        CommandArgumentBuilder<T> builder = new CommandArgumentBuilder<>(argumentClass, name);
+        builder.getErrorHandlers().on(CommandArgumentException.class, msg -> msg);
         Constructor<? extends CommandArgument<T>> constructor = argumentClass.getDeclaredConstructor(String.class);
         constructor.setAccessible(true);
         CommandArgument<T> argumentInstance = constructor.newInstance(name);
 
-        ArgumentErrorHandlers errorHandlers = new ArgumentErrorHandlers();
-        argumentInstance.errors(errorHandlers);
+        argumentInstance.define(new ArgumentBuilderStepsImpl.Parser<>(builder));
 
-        return new CommandArgumentDefinition<>(name,
-                argumentClass,
-                argumentInstance::parser,
-                argumentInstance::tabCompletion,
-                defaultInput,
-                errorHandlers,
-                optional);
+        return builder;
+    }
+
+    public static <T> CommandArgumentBuilder<?> getBuilderNsm(final Class<? extends CommandArgument<?>> clazz, final String label) throws ReflectiveOperationException
+    {
+        return getBuilder((Class<? extends CommandArgument<T>>)clazz, label);
     }
 }
