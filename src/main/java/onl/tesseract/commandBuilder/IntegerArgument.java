@@ -1,8 +1,5 @@
-package onl.tesseract.commandBuilder.v2.argument;
+package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.CommandArgument;
-import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

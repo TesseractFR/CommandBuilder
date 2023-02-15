@@ -5,6 +5,7 @@ import lombok.Setter;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
@@ -15,7 +16,7 @@ public class CommandArgumentBuilder<T> {
     private final Class<? extends CommandArgument<T>> argumentClass;
     @Setter
     private boolean optional = false;
-    @Setter
+    @Nullable
     private String defaultInput;
     @NotNull
     private final String name;
@@ -71,5 +72,11 @@ public class CommandArgumentBuilder<T> {
     public static <T> CommandArgumentBuilder<?> getBuilderNsm(final Class<? extends CommandArgument<?>> clazz, final String label) throws ReflectiveOperationException
     {
         return getBuilder((Class<? extends CommandArgument<T>>)clazz, label);
+    }
+
+    public CommandArgumentBuilder<T> setDefaultInput(final String defaultInput)
+    {
+        this.defaultInput = defaultInput;
+        return this;
     }
 }

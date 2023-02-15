@@ -1,6 +1,7 @@
 package onl.tesseract.commandBuilder.v2.argument;
 
 import onl.tesseract.commandBuilder.CommandEnvironment;
+import onl.tesseract.commandBuilder.IntegerArgument;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.CommandArgument;

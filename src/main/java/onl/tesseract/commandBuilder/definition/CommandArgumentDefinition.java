@@ -32,7 +32,7 @@ public class CommandArgumentDefinition<T> {
                                      final Class<? extends CommandArgument<T>> type,
                                      final BiFunction<String, CommandEnvironment, T> parser,
                                      final BiFunction<String, CommandEnvironment, List<String>> tabCompleter,
-                                     final String defaultInput,
+                                     final @Nullable String defaultInput,
                                      final ArgumentErrorHandlers errorHandlers,
                                      final boolean optional)
     {

@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
+import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -74,25 +75,22 @@ public class CommandBuilder {
         this.name = name;
         if (!generateDefaultHelp)
             return;
-//        subCommand(new CommandBuilder("help", false)
-//                .description("Obtenir de l'aide sur une commande.")
-//                .withOptionalArg(new CommandArgument("page", Integer.class)
-//                        .supplier((input, env) -> Integer.parseInt(input))
-//                        .defaultValue(env -> 1)
-//                        .error(NumberFormatException.class, "Nombre invalide"))
-//                .command(env -> {
-//                    Integer page = env.get("page", Integer.class);
-//                    if (page == null)
-//                        page = 1;
-//                    try
-//                    {
-//                        env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
-//                    }
-//                    catch (IllegalArgumentException e)
-//                    {
-//                        env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
-//                    }
-//                }));
+        subCommand(new CommandBuilder("help", false)
+                .description("Obtenir de l'aide sur une commande.")
+                .withOptionalArg(new IntegerArgument("page"), "1")
+                .command(env -> {
+                    Integer page = env.get("page", Integer.class);
+                    if (page == null)
+                        page = 1;
+                    try
+                    {
+                        env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
+                    }
+                }));
     }
 
     public String getName()
@@ -145,7 +143,7 @@ public class CommandBuilder {
         }
         catch (ReflectiveOperationException e)
         {
-            throw new RuntimeException(e);
+            throw new CommandBuildException(e);
         }
     }
 
@@ -168,6 +166,18 @@ public class CommandBuilder {
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         optionalArguments.add(optArg);
         return this;
+    }
+
+    public <T> CommandBuilder withOptionalArg(CommandArgument<T> optArg, @Nullable String def)
+    {
+        try
+        {
+            return withOptionalArg(CommandArgumentBuilder.getBuilder((Class<? extends CommandArgument<T>>) optArg.getClass(), optArg.getName()).setDefaultInput(def).build());
+        }
+        catch (ReflectiveOperationException e)
+        {
+            throw new CommandBuildException(e);
+        }
     }
 
     /**
@@ -321,11 +331,11 @@ public class CommandBuilder {
             help(sender);
             return;
         }
-//        if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
-//        {
-//            help(sender);
-//            return;
-//        }
+        //        if (!optionalArguments.isEmpty() && args.length > arguments.size() + optionalArguments.size())
+        //        {
+        //            help(sender);
+        //            return;
+        //        }
 
         // Parse mandatory arguments
         int i;
@@ -392,7 +402,8 @@ public class CommandBuilder {
             help(sender);
     }
 
-    private void executeEnvInserters(CommandEnvironment env) {
+    private void executeEnvInserters(CommandEnvironment env)
+    {
         envInserters.forEach(pair -> {
             env.set(pair.getLeft(), pair.getRight().apply(env));
         });

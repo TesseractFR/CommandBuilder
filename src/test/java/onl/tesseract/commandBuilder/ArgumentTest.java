@@ -5,8 +5,6 @@ import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.annotation.Env;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
-import onl.tesseract.commandBuilder.sample.FloatArgument;
-import onl.tesseract.commandBuilder.v2.argument.IntegerArgument;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
