@@ -315,17 +315,17 @@ public class CommandBuilder {
         }
     }
 
-    public boolean execute(CommandSender sender, CommandExecutionContext context) throws CommandExecutionException
+    private boolean preExecutionChecks(CommandExecutionContext context)
     {
+        CommandSender sender = context.getEnvironment().getSender();
         if (playerOnly && !(sender instanceof Player))
         {
             sender.sendMessage(ChatColor.RED + "This command is player-only");
             return false;
         }
-        CommandEnvironment env = context.getEnvironment();
         for (var predicate : predicates)
         {
-            if (!predicate.test(env))
+            if (!predicate.test(context.getEnvironment()))
                 return false;
         }
         if (context.countRemainingArgs() < arguments.size())
@@ -333,71 +333,81 @@ public class CommandBuilder {
             help(sender);
             return false;
         }
+        return true;
+    }
 
-        if (context.hasNextArg() && hasCommand(context.peekNextArg()))
+    private boolean processArgs(CommandExecutionContext context, List<CommandArgumentDefinition<?>> argList,
+                                boolean optionals) throws ArgumentParsingException
+    {
+        for (int i = 0; i < argList.size(); i++)
         {
-            executeEnvInserters(env);
-            CommandBuilder subCommand = getSubCommandOrAlias(context.nextArg());
-            if (subCommand.hasPermission(sender))
-                return subCommand.execute(sender, context);
-            else
-                sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
-            return false;
-        }
-
-        // Parse mandatory arguments
-        int i;
-        for (i = 0; i < arguments.size(); i++)
-        {
-            if (arguments.get(i).getType().equals(TextCommandArgument.class))
+            CommandArgumentDefinition<?> arg = argList.get(i);
+            if (arg.getType().equals(TextCommandArgument.class))
             {
                 String[] textParts = Arrays.copyOfRange(context.getArgs(), i, context.getArgs().length);
                 StringJoiner text = new StringJoiner(" ");
                 for (String part : textParts)
                     text.add(part);
-                parseArgument(env, arguments.get(i), text.toString());
+                parseArgument(context.getEnvironment(), arg, text.toString());
                 break;
             }
-            if (i >= context.getArgs().length)
+            if (!context.hasNextArg())
             {
-                help(sender);
-                return false;
+                if (!optionals)
+                {
+                    // No value provided for mandatory arg => Error
+                    help(context.getEnvironment().getSender());
+                    return false;
+                }
+                else if (arg.hasDefault())
+                    context.getEnvironment().setArgument(arg.getName(), arg.getDefault(context.getEnvironment()));
             }
-            if (!parseArgument(env, arguments.get(i), context.nextArg()))
+            else if (!parseArgument(context.getEnvironment(), arg, context.nextArg()))
                 return false;
         }
+        return true;
+    }
+
+    private boolean execSubCommand(CommandExecutionContext context, String commandName) throws CommandExecutionException
+    {
+        CommandSender sender = context.getEnvironment().getSender();
+        executeEnvInserters(context.getEnvironment());
+        CommandBuilder subCommand = getSubCommandOrAlias(commandName);
+        if (subCommand.hasPermission(sender))
+            return subCommand.execute(sender, context);
+        else
+        {
+            sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
+            return false;
+        }
+    }
+
+    public boolean execute(CommandSender sender, CommandExecutionContext context) throws CommandExecutionException
+    {
+        if (!preExecutionChecks(context))
+            return false;
+
+        CommandEnvironment env = context.getEnvironment();
+
+        // Parse mandatory arguments
+        if (!processArgs(context, arguments, false))
+            return false;
+
+        if (context.hasNextArg() && hasCommand(context.peekNextArg()))
+            return execSubCommand(context, context.nextArg());
 
         // Parse optional arguments
         if (!optionalArguments.isEmpty())
         {
-            for (final CommandArgumentDefinition<?> optionalArg : optionalArguments)
-            {
-                if (!context.hasNextArg())
-                {
-                    if (optionalArg.hasDefault())
-                        env.setArgument(optionalArg.getName(), optionalArg.getDefault(env));
-                }
-                else if (!parseArgument(env, optionalArg, context.nextArg()))
-                    return false;
-            }
+            if (!processArgs(context, optionalArguments, true))
+                return false;
         }
         else if (context.hasNextArg() && (subCommands.containsKey(context.peekNextArg()) || subCommandsAliases.containsKey(context.peekNextArg())))
-        {
-            executeEnvInserters(env);
-            CommandBuilder subCommand = getSubCommandOrAlias(context.nextArg());
-            if (subCommand.hasPermission(sender))
-                return subCommand.execute(sender, context);
-            else
-                sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
-            return false;
-        }
+            return execSubCommand(context, context.nextArg());
         else if (context.hasNextArg() && !bodyArguments.isEmpty())
         {
-            for (final CommandArgumentDefinition<?> bodyArg : bodyArguments)
-            {
-                if (!parseArgument(env, bodyArg, context.nextArg()))
-                    return false;
-            }
+            if (!processArgs(context, bodyArguments, false))
+                return false;
         }
 
         executeEnvInserters(env);
@@ -546,25 +556,6 @@ public class CommandBuilder {
     public boolean isPlayerOnly()
     {
         return playerOnly;
-    }
-
-    /**
-     * Add a predicate deciding if a player should be able to perform the command. If not, the error message will be printed, and the command will not
-     * show up in tab completion.
-     *
-     * @return this
-     */
-    public CommandBuilder predicate(Predicate<CommandEnvironment> predicate, String errorMessage)
-    {
-        predicates.add(env -> {
-            if (!predicate.test(env))
-            {
-                env.getSender().sendMessage(ChatColor.RED + errorMessage);
-                return false;
-            }
-            return true;
-        });
-        return this;
     }
 
     public CommandBuilder predicate(Predicate<CommandEnvironment> predicate)
