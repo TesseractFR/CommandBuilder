@@ -84,10 +84,12 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
     CommandBuilder provide(AnnotationReader reader) throws CommandBuildException
     {
         CommandBuilder res = new CommandBuilder(reader.readName())
-                .permission(reader.readPermission())
                 .description(reader.readDescription())
                 .playerOnly(reader.readPlayerOnly())
                 .command(reader.readCommandBody());
+        String permission = reader.readPermission();
+        if (!permission.isEmpty())
+            res.permission(permission);
 
         List<CommandArgumentDefinition<?>> arguments = reader.readArguments();
         arguments.forEach(arg -> {

@@ -12,8 +12,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class SubCommandTest {
@@ -78,6 +77,34 @@ public class SubCommandTest {
         assertTrue(res);
         verify(sender).sendMessage(any(String[].class));
     }
+
+    @Test
+    public void permissionPresenceCheck_NoPerm_Root() {
+        CommandWithNoPermission command = new CommandWithNoPermission();
+
+        assertSame(Permission.NONE, command.builder.getPermission());
+    }
+
+    @Test
+    public void permissionPresenceCheck_Perm_Root() {
+        CommandWithPermission command = new CommandWithPermission();
+
+        assertEquals("command", command.builder.getPermission().getName());
+    }
+
+    @Test
+    public void permissionPresenceCheck_NoPerm_Sub() {
+        CommandWithNoPermission command = new CommandWithNoPermission();
+
+        assertSame(Permission.NONE, command.builder.getSubCommands().get("sub").getPermission());
+    }
+
+    @Test
+    public void permissionPresenceCheck_Perm_Sub() {
+        CommandWithPermission command = new CommandWithPermission();
+
+        assertEquals("command.sub", command.builder.getSubCommands().get("sub").getPermission().getName());
+    }
 }
 
 @Command
@@ -98,7 +125,7 @@ class SubCommand extends CommandContext {
     }
 }
 
-@Command
+@Command(name = "command")
 class SubCommandWithOptionalArg extends CommandContext {
     @Command
     public void sub(CommandSender sender, @Argument(label = "flag", optional = true) @Nullable BooleanArgument boolArg)
@@ -109,6 +136,36 @@ class SubCommandWithOptionalArg extends CommandContext {
             return;
         }
         sender.setOp(boolArg.get());
+    }
+}
+
+@Command(name = "command", permission = "command")
+class CommandWithPermission extends CommandContext {
+    @CommandBody
+    public void cmd(CommandSender sender)
+    {
+        sender.setOp(true);
+    }
+
+    @Command
+    public void sub(CommandSender sender)
+    {
+        sender.setOp(false);
+    }
+}
+
+@Command(name = "command", permission = "")
+class CommandWithNoPermission extends CommandContext {
+    @CommandBody
+    public void cmd(CommandSender sender)
+    {
+        sender.setOp(true);
+    }
+
+    @Command
+    public void sub(CommandSender sender)
+    {
+        sender.setOp(false);
     }
 }
 

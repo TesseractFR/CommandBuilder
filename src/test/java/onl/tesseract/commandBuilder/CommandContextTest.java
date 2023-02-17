@@ -20,7 +20,7 @@ public class CommandContextTest {
         NoContentCommand command = new NoContentCommand();
 
         assertEquals("test", command.builder.getName());
-        assertEquals("test", command.builder.getPermission());
+        assertEquals("test", command.builder.getPermission().getName());
         assertEquals("A test command", command.builder.getDescription());
         assertTrue(command.builder.isPlayerOnly());
     }
@@ -42,7 +42,7 @@ public class CommandContextTest {
         CommandContext command = new NoContentNoAnnotationValuesCommand();
 
         assertEquals("noContentNoAnnotationValues", command.builder.getName());
-        assertEquals("", command.builder.getPermission());
+        assertSame(Permission.NONE, command.builder.getPermission());
         assertEquals("", command.builder.getDescription());
         assertFalse(command.builder.isPlayerOnly());
 

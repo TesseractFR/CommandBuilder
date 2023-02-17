@@ -67,12 +67,13 @@ class CommandBuilderTest {
     {
         Player player = mock(Player.class);
         when(sender.hasPermission("perm")).thenReturn(true);
+        when(sender.isPermissionSet("perm")).thenReturn(true);
         CommandBuilder cmd = new CommandBuilder("cmd");
         CommandBuilder subCmd = new CommandBuilder("subCmd");
         subCmd.permission("perm")
-              .command((sender, env) -> player.getName());
+              .command(env -> player.getName());
         cmd.subCommand(subCmd)
-           .command((sender, env) -> fail());
+           .command(env -> fail());
 
         cmd.execute(sender, new String[] {"subCmd"});
         verify(player, times(1)).getName();
@@ -87,9 +88,9 @@ class CommandBuilderTest {
         CommandBuilder cmd = new CommandBuilder("cmd");
         CommandBuilder subCmd = new CommandBuilder("subCmd");
         subCmd.permission("perm")
-              .command((sender, env) -> player.getName());
+              .command(env -> player.getName());
         cmd.subCommand(subCmd)
-           .command((sender, env) -> fail());
+           .command(env -> fail());
 
         cmd.execute(sender, new String[] {"subCmd"});
         verify(player, times(0)).getName();

@@ -14,7 +14,7 @@ myCommand.permission("myPermission") // Set a permission to the command
 ```
 To add a behavior to the command, call the command() method
 ```java
-myCommand.command((sender, env) -> {
+myCommand.command(env -> {
     // Command logic
     sender.sendMessage("You performed the command!");
 });
@@ -47,7 +47,7 @@ You can chain multiple `.withArg()` to add arguments to the command
 When an argument is parsed, it is stored in a CommandEnvironment, that holds all parsed argument of a command in execution. You can retrieve an argument by using the `get` method.
 ```java
 // The CommandEnvironment is passed to the command function to get arguments during command logic
-myCommand.command((sender, env) -> {
+myCommand.command(env -> {
     // Command logic
     Player player = env.get("player", Player.class);
     float amount = env.get("myArg", Float.clas);

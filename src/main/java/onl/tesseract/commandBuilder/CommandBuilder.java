@@ -7,12 +7,12 @@ import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -39,7 +39,8 @@ public class CommandBuilder {
     private final HashMap<String, CommandBuilder> subCommandsAliases = new HashMap<>();
     private String description;
     private final String name;
-    private String permission;
+    @NotNull
+    private Permission permission = Permission.NONE;
     private boolean playerOnly;
     private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
     private List<String> aliases = new ArrayList<>();
@@ -98,14 +99,15 @@ public class CommandBuilder {
         return name;
     }
 
-    public String getPermission()
+    @NotNull
+    public Permission getPermission()
     {
         return permission;
     }
 
     public boolean hasPermission(CommandSender sender)
     {
-        return permission == null || permission.isEmpty() || sender.hasPermission(permission);
+        return this.permission.hasPermission(sender);
     }
 
     /**
@@ -118,7 +120,7 @@ public class CommandBuilder {
      */
     public CommandBuilder permission(final String permission)
     {
-        this.permission = permission;
+        this.permission = Permission.get(permission);
         return this;
     }
 
@@ -192,16 +194,6 @@ public class CommandBuilder {
     public CommandBuilder command(Consumer<CommandEnvironment> consumer)
     {
         this.consumer = consumer;
-        return this;
-    }
-
-    /**
-     * @deprecated In favor of {@link CommandBuilder#command(Consumer)} since the sender is included in the environment
-     */
-    @Deprecated
-    public CommandBuilder command(BiConsumer<CommandSender, CommandEnvironment> consumer)
-    {
-        this.consumer = env -> consumer.accept(env.getSender(), env);
         return this;
     }
 
@@ -457,6 +449,8 @@ public class CommandBuilder {
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         subCommands.put(subCommand.getName(), subCommand);
         subCommand.aliases.forEach(alias -> subCommandsAliases.put(alias, subCommand));
+        if (this.permission != Permission.NONE && subCommand.permission == Permission.NONE)
+            subCommand.permission = this.permission.getChild(subCommand.name);
         return this;
     }
 
