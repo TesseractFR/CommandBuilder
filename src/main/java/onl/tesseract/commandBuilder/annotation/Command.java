@@ -12,10 +12,6 @@ import java.lang.annotation.*;
  *     <li>Parameter of type {@link org.bukkit.command.CommandSender}: Injected with the command sender</li>
  *     <li>Parameter of type {@link org.bukkit.entity.Player}: Injected with the player performing the command, for player-only commands</li>
  * </ul>
- *
- * <h3>Permissions</h3>
- * By default, a command does not have a permission, and can be executed by any player. If a command has a permission, every subcommands will also
- * have a permission, following the pattern
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
