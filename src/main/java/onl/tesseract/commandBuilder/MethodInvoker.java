@@ -2,7 +2,6 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Env;
-import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-public class MethodInvoker {
+class MethodInvoker {
 
     private final Method methodToInvoke;
     private final Object instance;

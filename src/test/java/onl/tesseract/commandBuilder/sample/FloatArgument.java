@@ -2,7 +2,6 @@ package onl.tesseract.commandBuilder.sample;
 
 import onl.tesseract.commandBuilder.CommandArgument;
 import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import org.jetbrains.annotations.NotNull;
 
 public class FloatArgument extends CommandArgument<Float> {

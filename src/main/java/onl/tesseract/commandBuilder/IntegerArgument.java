@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class IntegerArgument extends CommandArgument<Integer> {
+class IntegerArgument extends CommandArgument<Integer> {
 
     public IntegerArgument(@NotNull final String name)
     {

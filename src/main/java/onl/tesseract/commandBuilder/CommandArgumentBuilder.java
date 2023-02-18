@@ -2,7 +2,6 @@ package onl.tesseract.commandBuilder;
 
 import lombok.Getter;
 import lombok.Setter;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,7 +9,7 @@ import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public class CommandArgumentBuilder<T> {
+class CommandArgumentBuilder<T> {
 
     private final Class<? extends CommandArgument<T>> argumentClass;
     @Setter

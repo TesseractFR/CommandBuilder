@@ -4,12 +4,12 @@ import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.annotation.Env;
+import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,6 +22,35 @@ public class ArgumentTest {
     public void setup()
     {
         sender = mock(CommandSender.class);
+    }
+
+    @org.junit.jupiter.api.Test
+    void parseInteger_isNumber_ok() throws ArgumentParsingException, ReflectiveOperationException
+    {
+        CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
+
+        CommandArgument<Integer> arg = definition.newInstance("42", new CommandEnvironment(sender));
+
+        assertNotNull(arg);
+        assertEquals(42, arg.get());
+    }
+
+    @org.junit.jupiter.api.Test
+    void parseInteger_invalidNumber_NotHandled() throws ReflectiveOperationException
+    {
+        CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
+
+        assertThrows(ArgumentParsingException.class, () -> definition.newInstance("-1", new CommandEnvironment(sender)));
+    }
+
+    @org.junit.jupiter.api.Test
+    void parseInteger_invalidNumber_handled() throws ArgumentParsingException, ReflectiveOperationException
+    {
+        CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
+
+        CommandArgument<Integer> arg = definition.newInstance("foo", new CommandEnvironment(sender));
+
+        assertNull(arg);
     }
 
     @Test

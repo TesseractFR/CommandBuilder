@@ -1,7 +1,7 @@
 package onl.tesseract.commandBuilder;
 
 @FunctionalInterface
-public interface CommandInstanceFactory {
+interface CommandInstanceFactory {
 
     Object getClassInstance(Class<?> clazz);
 }

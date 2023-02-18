@@ -3,7 +3,6 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.jetbrains.annotations.Nullable;

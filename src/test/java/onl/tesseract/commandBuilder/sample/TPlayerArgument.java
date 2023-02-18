@@ -3,7 +3,6 @@ package onl.tesseract.commandBuilder.sample;
 import onl.tesseract.TPlayer;
 import onl.tesseract.commandBuilder.CommandArgument;
 import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import org.jetbrains.annotations.NotNull;
 
 public class TPlayerArgument extends CommandArgument<TPlayer> {

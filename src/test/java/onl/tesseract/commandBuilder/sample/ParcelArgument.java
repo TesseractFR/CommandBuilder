@@ -4,7 +4,6 @@ import onl.tesseract.Guild;
 import onl.tesseract.Parcel;
 import onl.tesseract.commandBuilder.CommandArgument;
 import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import org.jetbrains.annotations.NotNull;
 
 public class ParcelArgument extends CommandArgument<Parcel> {

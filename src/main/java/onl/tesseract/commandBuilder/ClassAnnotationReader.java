@@ -4,7 +4,6 @@ import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.annotation.EnvInsert;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.Nullable;
 

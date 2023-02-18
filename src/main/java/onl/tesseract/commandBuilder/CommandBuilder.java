@@ -1,6 +1,5 @@
 package onl.tesseract.commandBuilder;
 
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import onl.tesseract.commandBuilder.exception.CommandExecutionException;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * @see CommandContext Annotation-based command builder
  */
-public class CommandBuilder {
+final class CommandBuilder {
     private static final Logger logger = LoggerFactory.getLogger(CommandBuilder.class);
 
     List<CommandArgumentDefinition<?>> arguments = new ArrayList<>();

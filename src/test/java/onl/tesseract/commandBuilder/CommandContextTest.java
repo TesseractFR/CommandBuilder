@@ -1,12 +1,8 @@
 package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.*;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
-import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.command.CommandSender;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
 

@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 @Getter
-public class CommandExecutionContext {
+class CommandExecutionContext {
 
     private final CommandEnvironment environment;
     private final CommandBuilder rootCommand;
