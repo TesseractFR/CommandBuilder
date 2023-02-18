@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import onl.tesseract.commandBuilder.annotation.Perm;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -31,7 +32,7 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
 
     public CommandContext()
     {
-        command = new CommandBuilderProvider().provideForClass(this).build();
+        command = new CommandBuilderProvider().provideForClass(this).build(null);
     }
 
     public void register(final JavaPlugin plugin, final String commandName)
@@ -82,13 +83,13 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
 
     CommandBuilder provide(AnnotationReader reader) throws CommandBuildException
     {
+        Perm permission = reader.readPermission();
         CommandBuilder res = new CommandBuilder(reader.readName())
                 .description(reader.readDescription())
                 .playerOnly(reader.readPlayerOnly())
+                .permission(permission.value())
+                .setAbsolutePermission(permission.absolute())
                 .command(reader.readCommandBody());
-        String permission = reader.readPermission();
-        if (!permission.isEmpty())
-            res.permission(permission);
 
         List<CommandArgumentDefinition<?>> arguments = reader.readArguments();
         arguments.forEach(arg -> {

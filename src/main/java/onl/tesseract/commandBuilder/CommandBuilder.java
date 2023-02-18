@@ -1,7 +1,5 @@
 package onl.tesseract.commandBuilder;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +33,8 @@ final class CommandBuilder {
     private String description;
     private final String name;
     @NotNull
-    private Permission permission = Permission.NONE;
+    private String permission = "";
+    private boolean absolutePermission = false;
     private boolean playerOnly;
     private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
     private final List<String> aliases = new ArrayList<>();
@@ -90,7 +89,7 @@ final class CommandBuilder {
     }
 
     @NotNull
-    public Permission getPermission()
+    public String getPermission()
     {
         return permission;
     }
@@ -105,7 +104,7 @@ final class CommandBuilder {
      */
     public CommandBuilder permission(final String permission)
     {
-        this.permission = Permission.get(permission);
+        this.permission = permission;
         return this;
     }
 
@@ -219,8 +218,6 @@ final class CommandBuilder {
             throw new IllegalStateException("Optional arguments cannot be used in commands containing subcommands.");
         subCommands.put(subCommand.getName(), subCommand);
         subCommand.aliases.forEach(alias -> subCommandsAliases.put(alias, subCommand));
-        if (this.permission != Permission.NONE && subCommand.permission == Permission.NONE)
-            subCommand.permission = this.permission.getChild(subCommand.name);
         return this;
     }
 
@@ -235,11 +232,6 @@ final class CommandBuilder {
     {
         this.playerOnly = playerOnly;
         return this;
-    }
-
-    public boolean isPlayerOnly()
-    {
-        return playerOnly;
     }
 
     public CommandBuilder predicate(Predicate<CommandEnvironment> predicate)
@@ -260,21 +252,19 @@ final class CommandBuilder {
         return this;
     }
 
-    Map<String, CommandBuilder> getSubCommands()
-    {
-        return Collections.unmodifiableMap(subCommands);
-    }
-
-    public CommandDefinition build()
+    public CommandDefinition build(@Nullable CommandDefinition parent)
     {
         Map<String, CommandDefinition> commands = new HashMap<>();
         Map<String, CommandDefinition> subAliases = new HashMap<>();
-        subCommands.forEach((subCommandName, builder) -> {
-            CommandDefinition def = builder.build();
-            commands.put(subCommandName, def);
-            builder.aliases.forEach(alias -> subAliases.put(alias, def));
-        });
-        return new CommandDefinition(
+        Permission effectivePermission = Permission.NONE;
+        if (!this.permission.isBlank())
+        {
+            if (this.absolutePermission || parent == null || parent.getPermission() == Permission.NONE)
+                effectivePermission = Permission.get(this.permission);
+            else
+                effectivePermission = parent.getPermission().getChild(this.permission);
+        }
+        CommandDefinition definition = new CommandDefinition(
                 arguments,
                 optionalArguments,
                 bodyArguments,
@@ -283,11 +273,23 @@ final class CommandBuilder {
                 subAliases,
                 description,
                 name,
-                permission,
+                effectivePermission,
                 playerOnly,
                 predicates,
                 this.aliases,
                 envInserters
         );
+        subCommands.forEach((subCommandName, builder) -> {
+            CommandDefinition def = builder.build(definition);
+            commands.put(subCommandName, def);
+            builder.aliases.forEach(alias -> subAliases.put(alias, def));
+        });
+        return definition;
+    }
+
+    public CommandBuilder setAbsolutePermission(final boolean absolutePermission)
+    {
+        this.absolutePermission = absolutePermission;
+        return this;
     }
 }

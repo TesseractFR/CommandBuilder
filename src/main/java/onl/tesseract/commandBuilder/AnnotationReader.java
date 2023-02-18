@@ -53,11 +53,9 @@ abstract class AnnotationReader {
         return commandAnnotation.description();
     }
 
-    String readPermission()
+    Perm readPermission()
     {
-        // FIXME
-//        return commandAnnotation.permission();
-        return "";
+        return commandAnnotation.permission();
     }
 
     boolean readPlayerOnly()
