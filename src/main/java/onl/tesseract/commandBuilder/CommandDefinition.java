@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -141,13 +140,7 @@ public class CommandDefinition {
         CommandSender sender = context.getEnvironment().getSender();
         executeEnvInserters(context.getEnvironment());
         CommandDefinition subCommand = getSubCommandOrAlias(commandName);
-        if (subCommand.hasPermission(sender))
-            return subCommand.execute(sender, context);
-        else
-        {
-            sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
-            return false;
-        }
+        return subCommand.execute(sender, context);
     }
 
     public boolean execute(CommandSender sender, CommandExecutionContext context) throws CommandExecutionException
@@ -178,6 +171,11 @@ public class CommandDefinition {
                 return false;
         }
 
+        if (!getPermission().hasPermission(sender))
+        {
+            sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
+            return false;
+        }
         executeEnvInserters(env);
         if (consumer != null)
             consumer.accept(env, this);

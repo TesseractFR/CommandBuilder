@@ -35,7 +35,7 @@ public final class Permission {
         if (this.parent == null)
             return false;
         String globPermission = this.parent.name + ".*";
-        if (permissible.hasPermission(globPermission))
+        if (permissible.isPermissionSet(globPermission))
             return permissible.hasPermission(globPermission);
         return this.parent.hasPermission(permissible);
     }
