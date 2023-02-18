@@ -15,7 +15,7 @@ public class ExecutionTest {
         CommandContext commandA = new CallArgsOnSubCommand();
 
         CommandSender sender = mock(CommandSender.class);
-        commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
+        commandA.command.execute(sender, new String[] {"test", "Hello world!"});
         verify(sender).sendMessage("Hello world!");
     }
 
@@ -27,7 +27,7 @@ public class ExecutionTest {
         CommandSender sender = mock(CommandSender.class);
         when(sender.getName()).thenReturn("foo");
 
-        command.builder.execute(sender, new String[] {"test"});
+        command.command.execute(sender, new String[] {"test"});
 
         verify(sender).sendMessage("test");
     }
@@ -39,7 +39,7 @@ public class ExecutionTest {
         CommandSender sender = mock(CommandSender.class);
         when(sender.getName()).thenReturn("bar");
 
-        command.builder.execute(sender, new String[] {"test"});
+        command.command.execute(sender, new String[] {"test"});
 
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -50,7 +50,7 @@ public class ExecutionTest {
         CommandSender sender = mock(CommandSender.class);
         CommandEnvironment env = new CommandEnvironment(sender);
         CommandInsertEnv commandInsertEnv = new CommandInsertEnv();
-        commandInsertEnv.builder.execute(sender, new CommandExecutionContext(env, commandInsertEnv.builder, new String[0]));
+        commandInsertEnv.command.execute(sender, new CommandExecutionContext(env, commandInsertEnv.command, new String[0]));
 
         Assertions.assertNotNull(env.get("bar"));
         Assertions.assertEquals(43, env.get("bar", Integer.class));

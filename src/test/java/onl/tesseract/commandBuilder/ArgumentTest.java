@@ -24,8 +24,8 @@ public class ArgumentTest {
         sender = mock(CommandSender.class);
     }
 
-    @org.junit.jupiter.api.Test
-    void parseInteger_isNumber_ok() throws ArgumentParsingException, ReflectiveOperationException
+    @Test
+    public void parseInteger_isNumber_ok() throws ArgumentParsingException, ReflectiveOperationException
     {
         CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
 
@@ -35,16 +35,16 @@ public class ArgumentTest {
         assertEquals(42, arg.get());
     }
 
-    @org.junit.jupiter.api.Test
-    void parseInteger_invalidNumber_NotHandled() throws ReflectiveOperationException
+    @Test
+    public void parseInteger_invalidNumber_NotHandled() throws ReflectiveOperationException
     {
         CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
 
         assertThrows(ArgumentParsingException.class, () -> definition.newInstance("-1", new CommandEnvironment(sender)));
     }
 
-    @org.junit.jupiter.api.Test
-    void parseInteger_invalidNumber_handled() throws ArgumentParsingException, ReflectiveOperationException
+    @Test
+    public void parseInteger_invalidNumber_handled() throws ArgumentParsingException, ReflectiveOperationException
     {
         CommandArgumentDefinition<Integer> definition = CommandArgumentBuilder.getBuilder(IntegerArgument.class, "number").build();
 
@@ -58,14 +58,14 @@ public class ArgumentTest {
     {
         CommandContext commandA = new CallArgsImplicitTypeOnSubCommand();
 
-        commandA.builder.execute(sender, new String[] {"test", "Hello world!"});
+        commandA.command.execute(sender, new String[] {"test", "Hello world!"});
         verify(sender).sendMessage("Hello world!");
     }
 
     @Test
     public void exec_ArgumentOnClass_AccessArgumentViaEnv()
     {
-        new AccessArgumentViaEnv().builder.execute(sender, new String[] {"12"});
+        new AccessArgumentViaEnv().command.execute(sender, new String[] {"12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -73,7 +73,7 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnClass_AccessArgumentViaEnv_ImplicitGetValue()
     {
-        new AccessArgumentViaEnvImplicitGetValue().builder.execute(sender, new String[] {"12"});
+        new AccessArgumentViaEnvImplicitGetValue().command.execute(sender, new String[] {"12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -81,7 +81,7 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethod()
     {
-        new ArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test", "12"});
+        new ArgumentOnSubCommandFunction().command.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -89,7 +89,7 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethod_ClazzSpecifiedAndCastToValueType()
     {
-        new ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType().builder.execute(sender, new String[] {"test", "12"});
+        new ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType().command.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -109,7 +109,7 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethodWithDefaultValue_Provided()
     {
-        new ArgumentOnSubCommandFunctionDefaultValue().builder.execute(sender, new String[] {"test", "12"});
+        new ArgumentOnSubCommandFunctionDefaultValue().command.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -117,7 +117,7 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnMethodWithDefaultValue_NotProvided()
     {
-        new ArgumentOnSubCommandFunctionDefaultValue().builder.execute(sender, new String[] {"test"});
+        new ArgumentOnSubCommandFunctionDefaultValue().command.execute(sender, new String[] {"test"});
 
         verify(sender, times(1)).sendMessage("42");
     }
@@ -125,7 +125,7 @@ public class ArgumentTest {
     @Test
     public void exec_OptionalArgumentOnMethod_Provided()
     {
-        new OptionalArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test", "12"});
+        new OptionalArgumentOnSubCommandFunction().command.execute(sender, new String[] {"test", "12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -133,7 +133,23 @@ public class ArgumentTest {
     @Test
     public void exec_OptionalArgumentOnMethod_NotProvided()
     {
-        new OptionalArgumentOnSubCommandFunction().builder.execute(sender, new String[] {"test"});
+        new OptionalArgumentOnSubCommandFunction().command.execute(sender, new String[] {"test"});
+
+        verify(sender, times(1)).sendMessage("null");
+    }
+
+    @Test
+    public void exec_OptionalArgumentOnMethod_DirectCast_Provided()
+    {
+        new OptionalArgumentOnSubCommandFunction().command.execute(sender, new String[] {"foo", "12"});
+
+        verify(sender, times(1)).sendMessage("12");
+    }
+
+    @Test
+    public void exec_OptionalArgumentOnMethod_DirectCast_NotProvided()
+    {
+        new OptionalArgumentOnSubCommandFunction().command.execute(sender, new String[] {"foo"});
 
         verify(sender, times(1)).sendMessage("null");
     }
@@ -141,7 +157,7 @@ public class ArgumentTest {
     @Test
     public void exec_ArgumentOnCommandBody()
     {
-        new ArgumentOnCommandBody().builder.execute(sender, new String[] {"12"});
+        new ArgumentOnCommandBody().command.execute(sender, new String[] {"12"});
 
         verify(sender, times(1)).sendMessage("12");
     }
@@ -151,7 +167,7 @@ public class ArgumentTest {
     {
         ArgumentOnSubCommandFunction command = new ArgumentOnSubCommandFunction();
 
-        boolean res = command.builder.execute(sender, new String[] {"test"});
+        boolean res = command.command.execute(sender, new String[] {"test"});
 
         assertFalse(res);
     }
@@ -161,7 +177,7 @@ public class ArgumentTest {
     {
         ArgumentOnSubCommandFunction command = new ArgumentOnSubCommandFunction();
 
-        boolean res = command.builder.execute(sender, new String[] {"test", "42", "87"});
+        boolean res = command.command.execute(sender, new String[] {"test", "42", "87"});
 
         assertTrue(res);
         verify(sender).sendMessage("42");
@@ -251,6 +267,15 @@ class OptionalArgumentOnSubCommandFunction extends CommandContext {
     {
         if (integerArgument != null)
             sender.sendMessage(integerArgument.get() + "");
+        else
+            sender.sendMessage("null");
+    }
+
+    @Command
+    public void fooCommand(@Argument(label = "arg", clazz = IntegerArgument.class, optional = true) Integer integer, CommandSender sender)
+    {
+        if (integer != null)
+            sender.sendMessage(integer + "");
         else
             sender.sendMessage("null");
     }

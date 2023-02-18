@@ -37,7 +37,7 @@ class CommandBuilderTest {
                     .withArg(new FloatArgument("quantity"))
                     .command(env -> env.get("player", Player.class).setFlySpeed(env.get("quantity", Float.class)));
 
-        moneyCommand.execute(sender, new String[] {"GabRay", "invalid number"});
+        moneyCommand.build().execute(sender, new String[] {"GabRay", "invalid number"});
         verify(player, times(0)).setFlySpeed(anyFloat());
         verify(sender, times(1)).sendMessage(anyString());
     }
@@ -58,7 +58,7 @@ class CommandBuilderTest {
                         .withArg(new ParcelArgument("parcel"))
                         .command(env -> fail());
 
-        getParcelCommand.execute(sender, new String[] {"inexistent guild", "maison"});
+        getParcelCommand.build().execute(sender, new String[] {"inexistent guild", "maison"});
         verify(sender, times(1)).sendMessage(anyString());
     }
 
@@ -75,7 +75,7 @@ class CommandBuilderTest {
         cmd.subCommand(subCmd)
            .command(env -> fail());
 
-        cmd.execute(sender, new String[] {"subCmd"});
+        cmd.build().execute(sender, new String[] {"subCmd"});
         verify(player, times(1)).getName();
         verify(sender, times(0)).sendMessage(anyString());
     }
@@ -92,7 +92,7 @@ class CommandBuilderTest {
         cmd.subCommand(subCmd)
            .command(env -> fail());
 
-        cmd.execute(sender, new String[] {"subCmd"});
+        cmd.build().execute(sender, new String[] {"subCmd"});
         verify(player, times(0)).getName();
         verify(sender, times(1)).sendMessage(anyString());
     }

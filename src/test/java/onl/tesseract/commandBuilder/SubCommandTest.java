@@ -3,6 +3,7 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
+import onl.tesseract.commandBuilder.annotation.Perm;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +31,7 @@ public class SubCommandTest {
     {
         SimpleCommand simpleCommand = new SimpleCommand();
 
-        Map<String, CommandBuilder> subCommands = simpleCommand.builder.getSubCommands();
+        Map<String, CommandDefinition> subCommands = simpleCommand.command.getSubCommands();
         assertEquals(1, subCommands.size());
         assertTrue(subCommands.containsKey("help"));
     }
@@ -40,7 +41,7 @@ public class SubCommandTest {
     {
         SubCommand subCommand = new SubCommand();
 
-        Map<String, CommandBuilder> sub = subCommand.builder.getSubCommands().get("sub").getSubCommands();
+        Map<String, CommandDefinition> sub = subCommand.command.getSubCommands().get("sub").getSubCommands();
         assertEquals(1, sub.size());
         assertTrue(sub.containsKey("help"));
     }
@@ -50,7 +51,7 @@ public class SubCommandTest {
     {
         SubCommandWithOptionalArg subCommandWithOptionalArg = new SubCommandWithOptionalArg();
 
-        boolean res = subCommandWithOptionalArg.builder.execute(sender, new String[] {"sub"});
+        boolean res = subCommandWithOptionalArg.command.execute(sender, new String[] {"sub"});
 
         assertTrue(res);
         verify(sender).sendMessage("null arg");
@@ -61,7 +62,7 @@ public class SubCommandTest {
     {
         SubCommandWithOptionalArg subCommandWithOptionalArg = new SubCommandWithOptionalArg();
 
-        boolean res = subCommandWithOptionalArg.builder.execute(sender, new String[] {"sub", "true"});
+        boolean res = subCommandWithOptionalArg.command.execute(sender, new String[] {"sub", "true"});
 
         assertTrue(res);
         verify(sender, times(1)).setOp(true);
@@ -72,7 +73,7 @@ public class SubCommandTest {
     {
         SubCommandWithOptionalArg subCommandWithOptionalArg = new SubCommandWithOptionalArg();
 
-        boolean res = subCommandWithOptionalArg.builder.execute(sender, new String[] {"sub", "help"});
+        boolean res = subCommandWithOptionalArg.command.execute(sender, new String[] {"sub", "help"});
 
         assertTrue(res);
         verify(sender).sendMessage(any(String[].class));
@@ -82,28 +83,49 @@ public class SubCommandTest {
     public void permissionPresenceCheck_NoPerm_Root() {
         CommandWithNoPermission command = new CommandWithNoPermission();
 
-        assertSame(Permission.NONE, command.builder.getPermission());
+        assertSame(Permission.NONE, command.command.getPermission());
+    }
+
+    @Test
+    public void permissionPresenceCheck_NoPerm_SubWithPerm() {
+        CommandWithNoPermission command = new CommandWithNoPermission();
+
+        assertEquals("test", command.command.getSubCommands().get("sub2").getPermission().getName());
+    }
+
+    @Test
+    public void permissionPresenceCheck_NoPerm_SubNoPerm() {
+        CommandWithNoPermission command = new CommandWithNoPermission();
+
+        assertSame(Permission.NONE, command.command.getSubCommands().get("sub").getPermission());
     }
 
     @Test
     public void permissionPresenceCheck_Perm_Root() {
         CommandWithPermission command = new CommandWithPermission();
 
-        assertEquals("command", command.builder.getPermission().getName());
+        assertEquals("command", command.command.getPermission().getName());
     }
 
     @Test
-    public void permissionPresenceCheck_NoPerm_Sub() {
-        CommandWithNoPermission command = new CommandWithNoPermission();
-
-        assertSame(Permission.NONE, command.builder.getSubCommands().get("sub").getPermission());
-    }
-
-    @Test
-    public void permissionPresenceCheck_Perm_Sub() {
+    public void permissionPresenceCheck_Perm_SubRelativePerm() {
         CommandWithPermission command = new CommandWithPermission();
 
-        assertEquals("command.sub", command.builder.getSubCommands().get("sub").getPermission().getName());
+        assertEquals("command.test", command.command.getSubCommands().get("sub2").getPermission().getName());
+    }
+
+    @Test
+    public void permissionPresenceCheck_Perm_SubAbsolutePerm() {
+        CommandWithPermission command = new CommandWithPermission();
+
+        assertEquals("test", command.command.getSubCommands().get("sub3").getPermission().getName());
+    }
+
+    @Test
+    public void permissionPresenceCheck_Perm_SubNoPerm() {
+        CommandWithPermission command = new CommandWithPermission();
+
+        assertSame(Permission.NONE, command.command.getSubCommands().get("sub").getPermission());
     }
 }
 
@@ -139,7 +161,7 @@ class SubCommandWithOptionalArg extends CommandContext {
     }
 }
 
-@Command(name = "command", permission = "command")
+@Command(name = "command", permission = @Perm("command"))
 class CommandWithPermission extends CommandContext {
     @CommandBody
     public void cmd(CommandSender sender)
@@ -152,9 +174,21 @@ class CommandWithPermission extends CommandContext {
     {
         sender.setOp(false);
     }
+
+    @Command(permission = @Perm("test"))
+    public void sub2(CommandSender sender)
+    {
+        sender.setOp(false);
+    }
+
+    @Command(permission = @Perm(value = "test", absolute = true))
+    public void sub3(CommandSender sender)
+    {
+        sender.setOp(false);
+    }
 }
 
-@Command(name = "command", permission = "")
+@Command(name = "command", permission = @Perm(""))
 class CommandWithNoPermission extends CommandContext {
     @CommandBody
     public void cmd(CommandSender sender)
@@ -164,6 +198,12 @@ class CommandWithNoPermission extends CommandContext {
 
     @Command
     public void sub(CommandSender sender)
+    {
+        sender.setOp(false);
+    }
+
+    @Command(permission = @Perm("test"))
+    public void sub2(CommandSender sender)
     {
         sender.setOp(false);
     }

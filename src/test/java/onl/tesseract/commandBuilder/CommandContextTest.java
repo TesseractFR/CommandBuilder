@@ -15,10 +15,10 @@ public class CommandContextTest {
     {
         NoContentCommand command = new NoContentCommand();
 
-        assertEquals("test", command.builder.getName());
-        assertEquals("test", command.builder.getPermission().getName());
-        assertEquals("A test command", command.builder.getDescription());
-        assertTrue(command.builder.isPlayerOnly());
+        assertEquals("test", command.command.getName());
+        assertEquals("test", command.command.getPermission().getName());
+        assertEquals("A test command", command.command.getDescription());
+        assertTrue(command.command.isPlayerOnly());
     }
 
     @Test
@@ -26,8 +26,8 @@ public class CommandContextTest {
     {
         NoContentArgsCommand command = new NoContentArgsCommand();
 
-        assertEquals(1, command.builder.arguments.size());
-        CommandArgumentDefinition<?> argument = command.builder.arguments.get(0);
+        assertEquals(1, command.command.getArguments().size());
+        CommandArgumentDefinition<?> argument = command.command.getArguments().get(0);
         assertEquals("argTest", argument.getName());
         assertEquals(StringCommandArgument.class, argument.getType());
     }
@@ -37,12 +37,12 @@ public class CommandContextTest {
     {
         CommandContext command = new NoContentNoAnnotationValuesCommand();
 
-        assertEquals("noContentNoAnnotationValues", command.builder.getName());
-        assertSame(Permission.NONE, command.builder.getPermission());
-        assertEquals("", command.builder.getDescription());
-        assertFalse(command.builder.isPlayerOnly());
+        assertEquals("noContentNoAnnotationValues", command.command.getName());
+        assertSame(Permission.NONE, command.command.getPermission());
+        assertEquals("", command.command.getDescription());
+        assertFalse(command.command.isPlayerOnly());
 
-        assertEquals(0, command.builder.arguments.size());
+        assertEquals(0, command.command.getArguments().size());
     }
 
     @Test
@@ -73,8 +73,8 @@ public class CommandContextTest {
     {
         CommandContext command = new CommandClassWithSubCommand();
 
-        assertEquals("commandClassWithSub", command.builder.getName());
-        assertNotNull(command.builder.getSubCommands().get("my"));
+        assertEquals("commandClassWithSub", command.command.getName());
+        assertNotNull(command.command.getSubCommands().get("my"));
     }
 
     @Test
@@ -82,21 +82,21 @@ public class CommandContextTest {
     {
         CommandContext command = new CommandClassWithSubCommandAsClass();
 
-        assertNotNull(command.builder.getSubCommands().get("sub"));
+        assertNotNull(command.command.getSubCommands().get("sub"));
     }
 
     @Test
     public void CommandBodyTest()
     {
         CommandWithBody commandWithBody = new CommandWithBody();
-        assertNotNull(commandWithBody.builder.consumer);
+        assertNotNull(commandWithBody.command.getConsumer());
     }
 
     @Test
     public void SubCommandOnExternalClassTest()
     {
         CommandContext commandA = new CommandA();
-        assertNotNull(commandA.builder.getSubCommands().get("commandB"));
+        assertNotNull(commandA.command.getSubCommands().get("commandB"));
     }
 
     @Test
@@ -104,9 +104,9 @@ public class CommandContextTest {
     {
         CommandContext commandA = new InnerMethodTestBody();
 
-        CommandBuilder inner = commandA.builder.getSubCommands().get("inner");
+        CommandDefinition inner = commandA.command.getSubCommands().get("inner");
         assertNotNull(inner);
-        assertNotNull(inner.consumer);
+        assertNotNull(inner.getConsumer());
     }
 
 
@@ -117,12 +117,12 @@ class NoContentNoAnnotationValuesCommand extends CommandContext {
 
 }
 
-@Command(name = "test", permission = "test", playerOnly = true, description = "A test command")
+@Command(name = "test", permission = @Perm("test"), playerOnly = true, description = "A test command")
 class NoContentCommand extends CommandContext {
 
 }
 
-@Command(name = "test", permission = "test", playerOnly = true, description = "A test command",
+@Command(name = "test", permission = @Perm("test"), playerOnly = true, description = "A test command",
         args = {
                 @Argument(label = "argTest", clazz = StringCommandArgument.class)
         })

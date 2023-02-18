@@ -7,11 +7,11 @@ import org.jetbrains.annotations.Nullable;
 class CommandExecutionContext {
 
     private final CommandEnvironment environment;
-    private final CommandBuilder rootCommand;
+    private final CommandDefinition rootCommand;
     private final String[] args;
     private int currentArgIndex;
 
-    public CommandExecutionContext(final CommandEnvironment environment, final CommandBuilder rootCommand, final String[] args)
+    public CommandExecutionContext(final CommandEnvironment environment, final CommandDefinition rootCommand, final String[] args)
     {
         this.environment = environment;
         this.rootCommand = rootCommand;

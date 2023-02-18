@@ -3,6 +3,7 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
+import onl.tesseract.commandBuilder.annotation.Perm;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
@@ -54,7 +55,9 @@ abstract class AnnotationReader {
 
     String readPermission()
     {
-        return commandAnnotation.permission();
+        // FIXME
+//        return commandAnnotation.permission();
+        return "";
     }
 
     boolean readPlayerOnly()

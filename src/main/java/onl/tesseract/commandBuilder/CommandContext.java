@@ -27,11 +27,11 @@ import java.util.Objects;
  */
 public abstract class CommandContext implements CommandExecutor, TabCompleter {
 
-    final CommandBuilder builder;
+    final CommandDefinition command;
 
     public CommandContext()
     {
-        builder = new CommandBuilderProvider().provideForClass(this);
+        command = new CommandBuilderProvider().provideForClass(this).build();
     }
 
     public void register(final JavaPlugin plugin, final String commandName)
@@ -46,7 +46,7 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
                                    @NotNull final String label,
                                    @NotNull final String[] args)
     {
-        builder.execute(sender, args);
+        this.command.execute(sender, args);
         return true;
     }
 
@@ -56,7 +56,7 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
                                             @NotNull final String alias,
                                             @NotNull final String[] args)
     {
-        return builder.tabComplete(sender, args);
+        return this.command.tabComplete(sender, args);
     }
 }
 
