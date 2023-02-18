@@ -181,7 +181,7 @@ class SubCommand extends CommandContext {
 @Command(name = "command")
 class SubCommandWithOptionalArg extends CommandContext {
     @Command
-    public void sub(CommandSender sender, @Argument(label = "flag", optional = true) @Nullable BooleanArgument boolArg)
+    public void sub(CommandSender sender, @Argument(value = "flag", optional = true) @Nullable BooleanArgument boolArg)
     {
         if (boolArg == null)
         {

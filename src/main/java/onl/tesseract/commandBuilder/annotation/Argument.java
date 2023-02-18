@@ -17,7 +17,7 @@ public @interface Argument {
     /**
      * Name of the argument
      */
-    String label();
+    String value();
 
     /**
      * Class used to parse the argument

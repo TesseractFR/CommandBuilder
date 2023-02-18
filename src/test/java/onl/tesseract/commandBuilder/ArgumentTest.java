@@ -184,7 +184,7 @@ public class ArgumentTest {
     }
 }
 
-@Command(args = @Argument(label = "arg", clazz = IntegerArgument.class))
+@Command(args = @Argument(value = "arg", clazz = IntegerArgument.class))
 class AccessArgumentViaEnv extends CommandContext {
     @CommandBody
     void cmd(@Env(key = "arg") IntegerArgument arg, CommandEnvironment env)
@@ -199,7 +199,7 @@ class AccessArgumentViaEnv extends CommandContext {
     }
 }
 
-@Command(args = @Argument(label = "arg", clazz = IntegerArgument.class))
+@Command(args = @Argument(value = "arg", clazz = IntegerArgument.class))
 class AccessArgumentViaEnvImplicitGetValue extends CommandContext {
     @CommandBody
     void cmd(@Env(key = "arg") int arg, CommandEnvironment env)
@@ -217,7 +217,7 @@ class AccessArgumentViaEnvImplicitGetValue extends CommandContext {
 @Command
 class ArgumentOnSubCommandFunction extends CommandContext {
     @Command
-    public void testCommand(@Argument(label = "arg") IntegerArgument integerArgument, CommandSender sender)
+    public void testCommand(@Argument(value = "arg") IntegerArgument integerArgument, CommandSender sender)
     {
         sender.sendMessage(integerArgument.get() + "");
     }
@@ -226,7 +226,7 @@ class ArgumentOnSubCommandFunction extends CommandContext {
 @Command
 class ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType extends CommandContext {
     @Command
-    public void testCommand(@Argument(label = "arg", clazz = IntegerArgument.class) int integer, CommandSender sender)
+    public void testCommand(@Argument(value = "arg", clazz = IntegerArgument.class) int integer, CommandSender sender)
     {
         sender.sendMessage(integer + "");
     }
@@ -235,7 +235,7 @@ class ArgumentOnSubCommandFunctionClazzSpecifiedAndCastToValueType extends Comma
 @Command
 class ArgumentOnSubCommandFunctionInvalidType extends CommandContext {
     @Command
-    public void testCommand(@Argument(label = "arg") int integer, CommandSender sender)
+    public void testCommand(@Argument(value = "arg") int integer, CommandSender sender)
     {
         sender.sendMessage(integer + "");
     }
@@ -244,7 +244,7 @@ class ArgumentOnSubCommandFunctionInvalidType extends CommandContext {
 @Command
 class ArgumentOnSubCommandFunctionInvalidClassType extends CommandContext {
     @Command
-    public void testCommand(@Argument(label = "arg") String integer, CommandSender sender)
+    public void testCommand(@Argument(value = "arg") String integer, CommandSender sender)
     {
         sender.sendMessage(integer + "");
     }
@@ -253,7 +253,7 @@ class ArgumentOnSubCommandFunctionInvalidClassType extends CommandContext {
 @Command
 class ArgumentOnSubCommandFunctionDefaultValue extends CommandContext {
     @Command
-    public void testCommand(@Argument(label = "arg", optional = true, def = "42") IntegerArgument integerArgument, CommandSender sender)
+    public void testCommand(@Argument(value = "arg", optional = true, def = "42") IntegerArgument integerArgument, CommandSender sender)
     {
         sender.sendMessage(integerArgument.get() + "");
     }
@@ -263,7 +263,7 @@ class ArgumentOnSubCommandFunctionDefaultValue extends CommandContext {
 @Command
 class OptionalArgumentOnSubCommandFunction extends CommandContext {
     @Command
-    public void testCommand(@Argument(label = "arg", optional = true) @Nullable IntegerArgument integerArgument, CommandSender sender)
+    public void testCommand(@Argument(value = "arg", optional = true) @Nullable IntegerArgument integerArgument, CommandSender sender)
     {
         if (integerArgument != null)
             sender.sendMessage(integerArgument.get() + "");
@@ -272,7 +272,7 @@ class OptionalArgumentOnSubCommandFunction extends CommandContext {
     }
 
     @Command
-    public void fooCommand(@Argument(label = "arg", clazz = IntegerArgument.class, optional = true) Integer integer, CommandSender sender)
+    public void fooCommand(@Argument(value = "arg", clazz = IntegerArgument.class, optional = true) Integer integer, CommandSender sender)
     {
         if (integer != null)
             sender.sendMessage(integer + "");
@@ -284,7 +284,7 @@ class OptionalArgumentOnSubCommandFunction extends CommandContext {
 @Command
 class ArgumentOnCommandBody extends CommandContext {
     @CommandBody
-    public void testCommand(@Argument(label = "arg") IntegerArgument integerArgument, CommandSender sender)
+    public void testCommand(@Argument(value = "arg") IntegerArgument integerArgument, CommandSender sender)
     {
         sender.sendMessage(integerArgument.get() + "");
     }

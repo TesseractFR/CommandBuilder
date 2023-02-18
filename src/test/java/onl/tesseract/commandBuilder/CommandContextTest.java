@@ -124,7 +124,7 @@ class NoContentCommand extends CommandContext {
 
 @Command(name = "test", permission = @Perm("test"), playerOnly = true, description = "A test command",
         args = {
-                @Argument(label = "argTest", clazz = StringCommandArgument.class)
+                @Argument(value = "argTest", clazz = StringCommandArgument.class)
         })
 class NoContentArgsCommand extends CommandContext {
 
@@ -138,7 +138,7 @@ class InnerMethodTestCommand {
 
 class InnerMethodWithArgsTestCommand {
     @Command
-    public void innerCommand(@Argument(label = "arg", clazz = StringCommandArgument.class) StringCommandArgument arg)
+    public void innerCommand(@Argument(value = "arg", clazz = StringCommandArgument.class) StringCommandArgument arg)
     {}
 }
 
@@ -146,7 +146,7 @@ class InnerMethodWithArgsTestCommand {
 class CommandClassWithSubCommand extends CommandContext {
 
     @Command
-    public void myCommand(@Argument(label = "test", clazz = StringCommandArgument.class) StringCommandArgument arg)
+    public void myCommand(@Argument(value = "test", clazz = StringCommandArgument.class) StringCommandArgument arg)
     {}
 }
 
@@ -191,7 +191,7 @@ class InnerMethodTestBody extends CommandContext {
 class CallArgsOnSubCommand extends CommandContext {
 
     @Command
-    public void testCommand(@Argument(label = "test", clazz = StringCommandArgument.class) StringCommandArgument testString,
+    public void testCommand(@Argument(value = "test", clazz = StringCommandArgument.class) StringCommandArgument testString,
                             CommandSender sender)
     {
         sender.sendMessage(testString.get());
@@ -202,7 +202,7 @@ class CallArgsOnSubCommand extends CommandContext {
 class CallArgsImplicitTypeOnSubCommand extends CommandContext {
 
     @Command
-    public void testCommand(@Argument(label = "test") StringCommandArgument testString,
+    public void testCommand(@Argument(value = "test") StringCommandArgument testString,
                             CommandSender sender)
     {
         sender.sendMessage(testString.get());

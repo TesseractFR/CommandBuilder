@@ -72,7 +72,7 @@ abstract class AnnotationReader {
         {
             try
             {
-                CommandArgumentBuilder<?> argBuilder = CommandArgumentBuilder.getBuilderNsm(argAnnotation.clazz(), argAnnotation.label());
+                CommandArgumentBuilder<?> argBuilder = CommandArgumentBuilder.getBuilderNsm(argAnnotation.clazz(), argAnnotation.value());
                 argBuilder.setOptional(argAnnotation.optional());
                 argBuilder.setDefaultInput(argAnnotation.def());
                 res.add(argBuilder.build());
@@ -156,7 +156,7 @@ abstract class AnnotationReader {
 
             try
             {
-                CommandArgumentBuilder<?> builder = CommandArgumentBuilder.getBuilderNsm(type, argAnnotation.label());
+                CommandArgumentBuilder<?> builder = CommandArgumentBuilder.getBuilderNsm(type, argAnnotation.value());
                 builder.setOptional(argAnnotation.optional());
                 builder.setDefaultInput(argAnnotation.def());
                 args.add(builder.build());
