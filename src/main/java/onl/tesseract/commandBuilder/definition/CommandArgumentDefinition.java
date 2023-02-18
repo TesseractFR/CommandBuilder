@@ -4,7 +4,7 @@ import lombok.Getter;
 import onl.tesseract.commandBuilder.CommandArgument;
 import onl.tesseract.commandBuilder.CommandEnvironment;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
-import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
+import onl.tesseract.commandBuilder.ArgumentErrorHandlers;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

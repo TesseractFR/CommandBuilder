@@ -3,7 +3,6 @@ package onl.tesseract.commandBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
-import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -2,14 +2,9 @@ package onl.tesseract.commandBuilder.annotation;
 
 import onl.tesseract.commandBuilder.CommandArgument;
 import onl.tesseract.commandBuilder.CommandArgumentBuilderSteps;
-import onl.tesseract.commandBuilder.CommandEnvironment;
-import onl.tesseract.commandBuilder.definition.CommandArgumentDefinition;
-import onl.tesseract.commandBuilder.v2.ArgumentErrorHandlers;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.*;
-import java.util.List;
 
 /**
  * Specifies that the annotated parameter should be automatically injected with a command argument

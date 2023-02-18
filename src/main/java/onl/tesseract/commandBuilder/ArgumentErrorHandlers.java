@@ -1,4 +1,4 @@
-package onl.tesseract.commandBuilder.v2;
+package onl.tesseract.commandBuilder;
 
 import org.jetbrains.annotations.NotNull;
 
