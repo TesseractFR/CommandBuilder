@@ -21,16 +21,18 @@ import java.util.stream.Collectors;
  * Used to build complex feature-rich commands. Can handle sub commands, arguments, optional
  * arguments, permissions, help messages, player-ony commands.
  *
+ * <p>
  * To disable default help messages, use {@link CommandBuilder#CommandBuilder(String, boolean)} with false.
+ * </p>
  *
  * @see CommandContext Annotation-based command builder
  */
 final class CommandBuilder {
     private static final Logger logger = LoggerFactory.getLogger(CommandBuilder.class);
 
-    List<CommandArgumentDefinition<?>> arguments = new ArrayList<>();
-    List<CommandArgumentDefinition<?>> optionalArguments = new ArrayList<>();
-    List<CommandArgumentDefinition<?>> bodyArguments = new ArrayList<>();
+    final List<CommandArgumentDefinition<?>> arguments = new ArrayList<>();
+    final List<CommandArgumentDefinition<?>> optionalArguments = new ArrayList<>();
+    final List<CommandArgumentDefinition<?>> bodyArguments = new ArrayList<>();
     Consumer<CommandEnvironment> consumer;
     // Use linked hashmap to keep insertion order
     // Useful to display help messages with subcommands in a pertinent order
@@ -42,8 +44,8 @@ final class CommandBuilder {
     private Permission permission = Permission.NONE;
     private boolean playerOnly;
     private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
-    private List<String> aliases = new ArrayList<>();
-    private List<Pair<String, Function<CommandEnvironment, Object>>> envInserters = new ArrayList<>();
+    private final List<String> aliases = new ArrayList<>();
+    private final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters = new ArrayList<>();
 
     /**
      * Start building a new command with auto generated help message
@@ -416,9 +418,7 @@ final class CommandBuilder {
 
     private void executeEnvInserters(CommandEnvironment env)
     {
-        envInserters.forEach(pair -> {
-            env.set(pair.getLeft(), pair.getRight().apply(env));
-        });
+        envInserters.forEach(pair -> env.set(pair.getLeft(), pair.getRight().apply(env)));
     }
 
     private CommandBuilder getSubCommandOrAlias(String name)

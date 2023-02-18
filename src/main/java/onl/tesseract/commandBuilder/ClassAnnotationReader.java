@@ -44,9 +44,7 @@ final class ClassAnnotationReader extends AnnotationReader {
             CommandBody annotation = method.getAnnotation(CommandBody.class);
             if (annotation == null)
                 continue;
-            return env -> {
-                new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass())).invoke(env);
-            };
+            return env -> new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass())).invoke(env);
         }
         return null;
     }
@@ -127,10 +125,8 @@ final class ClassAnnotationReader extends AnnotationReader {
             if (annotation == null)
                 continue;
             String name = annotation.value();
-            res.add(new Pair<>(name, env -> {
-                return new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
-                        .invoke(env);
-            }));
+            res.add(new Pair<>(name, env -> new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
+                    .invoke(env)));
         }
         return res;
     }

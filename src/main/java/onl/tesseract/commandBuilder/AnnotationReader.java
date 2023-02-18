@@ -4,12 +4,16 @@ import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -102,6 +106,8 @@ abstract class AnnotationReader {
                 throw new CommandBuildException("Predicate " + predicateName + " should have boolean return type");
             res.add(env -> {
                 Object invoke = new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass())).invoke(env);
+                if (!(invoke instanceof Boolean))
+                    throw new CommandExecutionException("Predicate function does not return a boolean: " + method.getName());
                 return (boolean) invoke;
             });
         }

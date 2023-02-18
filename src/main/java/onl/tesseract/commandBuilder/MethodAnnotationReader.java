@@ -32,7 +32,7 @@ final class MethodAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException, InvalidArgumentTypeException
+    List<CommandArgumentDefinition<?>> readArguments() throws CommandBuildException
     {
         List<CommandArgumentDefinition<?>> args = super.readArguments();
 
@@ -43,10 +43,8 @@ final class MethodAnnotationReader extends AnnotationReader {
     @Override
     Consumer<CommandEnvironment> readCommandBody()
     {
-        return env -> {
-            new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
-                    .invoke(env);
-        };
+        return env -> new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass()))
+                .invoke(env);
     }
 
     @Override

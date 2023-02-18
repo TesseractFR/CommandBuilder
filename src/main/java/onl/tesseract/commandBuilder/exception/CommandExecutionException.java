@@ -1,6 +1,6 @@
 package onl.tesseract.commandBuilder.exception;
 
-public class CommandExecutionException extends Exception {
+public class CommandExecutionException extends RuntimeException {
 
     public CommandExecutionException()
     {
