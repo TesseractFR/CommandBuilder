@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import onl.tesseract.commandBuilder.annotation.Perm;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ final class CommandBuilder {
     @NotNull
     private String permission = "";
     private boolean absolutePermission = false;
+    private Perm.Mode permissionMode = Perm.Mode.INHERIT;
     private boolean playerOnly;
     private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
     private final List<String> aliases = new ArrayList<>();
@@ -257,7 +259,18 @@ final class CommandBuilder {
         Map<String, CommandDefinition> commands = new HashMap<>();
         Map<String, CommandDefinition> subAliases = new HashMap<>();
         Permission effectivePermission = Permission.NONE;
-        if (!this.permission.isBlank())
+        if (this.permissionMode == Perm.Mode.AUTO)
+        {
+            if (this.permission.isBlank() && parent != null)
+                effectivePermission = parent.getPermission().getChild(this.name);
+            else if (this.permission.isBlank() && parent == null)
+                effectivePermission = Permission.get(this.name);
+            else if (!this.permission.isBlank() && parent != null)
+                effectivePermission = parent.getPermission().getChild(this.permission);
+            else if (!this.permission.isBlank() && parent == null)
+                effectivePermission = Permission.get(this.permission);
+        }
+        else if (!this.permission.isBlank())
         {
             if (this.absolutePermission || parent == null || parent.getPermission() == Permission.NONE)
                 effectivePermission = Permission.get(this.permission);
@@ -280,6 +293,8 @@ final class CommandBuilder {
                 envInserters
         );
         subCommands.forEach((subCommandName, builder) -> {
+            if (builder.permissionMode == Perm.Mode.INHERIT)
+                builder.permissionMode = permissionMode;
             CommandDefinition def = builder.build(definition);
             commands.put(subCommandName, def);
             builder.aliases.forEach(alias -> subAliases.put(alias, def));
@@ -290,6 +305,12 @@ final class CommandBuilder {
     public CommandBuilder setAbsolutePermission(final boolean absolutePermission)
     {
         this.absolutePermission = absolutePermission;
+        return this;
+    }
+
+    public CommandBuilder setPermissionMode(final Perm.Mode permissionMode)
+    {
+        this.permissionMode = permissionMode;
         return this;
     }
 }

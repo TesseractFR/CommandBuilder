@@ -89,6 +89,7 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
                 .playerOnly(reader.readPlayerOnly())
                 .permission(permission.value())
                 .setAbsolutePermission(permission.absolute())
+                .setPermissionMode(permission.mode())
                 .command(reader.readCommandBody());
 
         List<CommandArgumentDefinition<?>> arguments = reader.readArguments();

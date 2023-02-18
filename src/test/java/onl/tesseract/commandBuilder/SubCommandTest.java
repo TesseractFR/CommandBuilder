@@ -80,52 +80,83 @@ public class SubCommandTest {
     }
 
     @Test
-    public void permissionPresenceCheck_NoPerm_Root() {
+    public void permissionPresenceCheck_NoPerm_Root()
+    {
         CommandWithNoPermission command = new CommandWithNoPermission();
 
         assertSame(Permission.NONE, command.command.getPermission());
     }
 
     @Test
-    public void permissionPresenceCheck_NoPerm_SubWithPerm() {
+    public void permissionPresenceCheck_NoPerm_SubWithPerm()
+    {
         CommandWithNoPermission command = new CommandWithNoPermission();
 
         assertEquals("test", command.command.getSubCommands().get("sub2").getPermission().getName());
     }
 
     @Test
-    public void permissionPresenceCheck_NoPerm_SubNoPerm() {
+    public void permissionPresenceCheck_NoPerm_SubNoPerm()
+    {
         CommandWithNoPermission command = new CommandWithNoPermission();
 
         assertSame(Permission.NONE, command.command.getSubCommands().get("sub").getPermission());
     }
 
     @Test
-    public void permissionPresenceCheck_Perm_Root() {
+    public void permissionPresenceCheck_Perm_Root()
+    {
         CommandWithPermission command = new CommandWithPermission();
 
         assertEquals("command", command.command.getPermission().getName());
     }
 
     @Test
-    public void permissionPresenceCheck_Perm_SubRelativePerm() {
+    public void permissionPresenceCheck_Perm_SubRelativePerm()
+    {
         CommandWithPermission command = new CommandWithPermission();
 
         assertEquals("command.test", command.command.getSubCommands().get("sub2").getPermission().getName());
     }
 
     @Test
-    public void permissionPresenceCheck_Perm_SubAbsolutePerm() {
+    public void permissionPresenceCheck_Perm_SubAbsolutePerm()
+    {
         CommandWithPermission command = new CommandWithPermission();
 
         assertEquals("test", command.command.getSubCommands().get("sub3").getPermission().getName());
     }
 
     @Test
-    public void permissionPresenceCheck_Perm_SubNoPerm() {
+    public void permissionPresenceCheck_Perm_SubNoPerm()
+    {
         CommandWithPermission command = new CommandWithPermission();
 
         assertSame(Permission.NONE, command.command.getSubCommands().get("sub").getPermission());
+    }
+
+    @Test
+    public void permissionPresenceCheck_AutoPerm_Root()
+    {
+        CommandWithAutoPermission command = new CommandWithAutoPermission();
+
+        assertEquals("command", command.command.getPermission().getName());
+    }
+
+    @Test
+    public void permissionPresenceCheck_AutoPerm_Sub()
+    {
+        CommandWithAutoPermission command = new CommandWithAutoPermission();
+
+        assertEquals("command.sub", command.command.getSubCommands().get("sub").getPermission().getName());
+    }
+
+    @Test
+    public void permissionPresenceCheck_AutoPerm_SubManualMode()
+    {
+        CommandWithAutoPermission command = new CommandWithAutoPermission();
+
+        assertEquals("command.test", command.command.getSubCommands().get("sub2").getPermission().getName());
     }
 }
 
@@ -203,6 +234,21 @@ class CommandWithNoPermission extends CommandContext {
     }
 
     @Command(permission = @Perm("test"))
+    public void sub2(CommandSender sender)
+    {
+        sender.setOp(false);
+    }
+}
+
+@Command(name = "command", permission = @Perm(mode = Perm.Mode.AUTO))
+class CommandWithAutoPermission extends CommandContext {
+    @Command
+    public void sub(CommandSender sender)
+    {
+        sender.setOp(false);
+    }
+
+    @Command(permission = @Perm(mode = Perm.Mode.MANUAL, value = "test"))
     public void sub2(CommandSender sender)
     {
         sender.setOp(false);
