@@ -262,7 +262,7 @@ class BooleanArgument extends CommandArgument<Boolean> {
     }
 
     @Override
-    public void define(final CommandArgumentBuilderSteps.Parser<Boolean> builder)
+    public void define(final CommandArgumentBuilderSteps.@NotNull Parser<Boolean> builder)
     {
         builder.parser((input, env) -> Boolean.parseBoolean(input))
                .tabCompleter((input, env) -> List.of("true", "false"))
