@@ -60,6 +60,28 @@ public class CommandDefinition {
         this.predicates = predicates;
         this.aliases = aliases;
         this.envInserters = envInserters;
+
+        if (!subCommands.containsKey("help") && !name.equals("help"))
+        {
+            subCommands.put("help", new CommandBuilder("help")
+                    .description("Obtenir de l'aide sur une commande.")
+                    .withOptionalArg(new IntegerArgument("page"), "1")
+                    .command(env -> {
+                        Integer page = env.get("page", Integer.class);
+                        if (page == null)
+                            page = 1;
+                        try
+                        {
+                            env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
+                        }
+                        catch (IllegalArgumentException e)
+                        {
+                            env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
+                        }
+                    })
+                    .build(this)
+            );
+        }
     }
 
     /**
@@ -169,6 +191,11 @@ public class CommandDefinition {
         {
             if (!processArgs(context, bodyArguments, false))
                 return false;
+        }
+        else if (context.hasNextArg())
+        {
+            help(sender);
+            return false;
         }
 
         if (!getPermission().hasPermission(sender))

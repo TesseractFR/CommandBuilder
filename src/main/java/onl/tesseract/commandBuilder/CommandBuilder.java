@@ -16,7 +16,7 @@ import java.util.function.Predicate;
  * arguments, permissions, help messages, player-ony commands.
  *
  * <p>
- * To disable default help messages, use {@link CommandBuilder#CommandBuilder(String, boolean)} with false.
+ * To disable default help messages, use {@link #CommandBuilder(String)} with false.
  * </p>
  *
  * @see CommandContext Annotation-based command builder
@@ -43,51 +43,13 @@ final class CommandBuilder {
     private final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters = new ArrayList<>();
 
     /**
-     * Start building a new command with auto generated help message
-     *
-     * @param name Command's name
-     *
-     * @see CommandBuilder#CommandBuilder(String, boolean)
-     */
-    public CommandBuilder(String name)
-    {
-        this(name, true);
-    }
-
-    /**
      * Start building a new command
      *
      * @param name Name of the command
-     * @param generateDefaultHelp If true, will generate a default help message showing all arguments and subcommands. The help message will be
-     * printed to the player on 3 scenarios :
-     * <ul>
-     *     <li>The player performed the command /command help</li>
-     *     <li>The player performed the command /command, and no default behavior is specified</li>
-     *     <li>The player performed the command with a syntax error (ex: missing required argument)</li>
-     * </ul>
-     * You can register you own help message by override the commande 'help'
      */
-    public CommandBuilder(String name, boolean generateDefaultHelp)
+    public CommandBuilder(String name)
     {
         this.name = name;
-        if (!generateDefaultHelp)
-            return;
-        subCommand(new CommandBuilder("help", false)
-                .description("Obtenir de l'aide sur une commande.")
-                .withOptionalArg(new IntegerArgument("page"), "1")
-                .command((env, self) -> {
-                    Integer page = env.get("page", Integer.class);
-                    if (page == null)
-                        page = 1;
-                    try
-                    {
-                        env.getSender().sendMessage(self.helpGetPage(env.getSender(), page - 1));
-                    }
-                    catch (IllegalArgumentException e)
-                    {
-                        env.getSender().sendMessage(self.helpGetPage(env.getSender(), 0));
-                    }
-                }));
     }
 
     @NotNull
