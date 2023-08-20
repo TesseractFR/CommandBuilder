@@ -141,7 +141,12 @@ final class CommandBuilder {
      */
     public CommandBuilder command(Consumer<CommandEnvironment> consumer)
     {
-        this.consumer = (env, self) -> consumer.accept(env);
+        this.consumer = (env, self) -> {
+            if (consumer == null)
+                self.help(env.getSender());
+            else
+                consumer.accept(env);
+        };
         return this;
     }
 
