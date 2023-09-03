@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Getter(AccessLevel.PACKAGE)
@@ -35,7 +34,7 @@ public class CommandDefinition {
     @NotNull
     private final Permission permission;
     private final boolean playerOnly;
-    private final List<Predicate<CommandEnvironment>> predicates;
+    private final List<PredicateDefinition> predicates;
     private final List<String> aliases;
     private final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters;
 
@@ -44,7 +43,7 @@ public class CommandDefinition {
                       final Map<String, CommandDefinition> subCommands,
                       final Map<String, CommandDefinition> subCommandsAliases, final String description, final String name,
                       @NotNull final Permission permission,
-                      final boolean playerOnly, final List<Predicate<CommandEnvironment>> predicates, final List<String> aliases,
+                      final boolean playerOnly, final List<PredicateDefinition> predicates, final List<String> aliases,
                       final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters)
     {
         this.arguments = arguments;
@@ -379,15 +378,20 @@ public class CommandDefinition {
         else if (i == arguments.size()) // sub command names
         {
             return subCommands.values().stream()
-                              .filter(cmd -> cmd.hasPermission(sender))
-                              .map(builder -> {
-                                  ArrayList<String> strings = new ArrayList<>(builder.aliases);
-                                  strings.add(builder.getName());
-                                  return strings;
-                              })
-                              .flatMap(Collection::stream)
-                              .filter(s -> s.startsWith(finalArg))
-                              .collect(Collectors.toList());
+                    .filter(cmd -> cmd.hasPermission(sender))
+                    .filter(cmd ->
+                            cmd.getPredicates().stream()
+                                    .filter(PredicateDefinition::isStrict)
+                                    .allMatch(predicate -> predicate.test(env))
+                    )
+                    .map(builder -> {
+                        ArrayList<String> strings = new ArrayList<>(builder.aliases);
+                        strings.add(builder.getName());
+                        return strings;
+                    })
+                    .flatMap(Collection::stream)
+                    .filter(s -> s.startsWith(finalArg))
+                    .collect(Collectors.toList());
         }
         return null;
     }

@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 abstract class AnnotationReader {
     protected final Command commandAnnotation;
@@ -88,13 +87,13 @@ abstract class AnnotationReader {
     @Nullable
     abstract Consumer<CommandEnvironment> readCommandBody();
 
-    abstract List<Predicate<CommandEnvironment>> readPredicates();
+    abstract List<PredicateDefinition> readPredicates();
 
     abstract List<CommandArgumentDefinition<?>> readBodyArguments();
 
-    protected List<Predicate<CommandEnvironment>> readPredicates(CommandPredicate[] annotations)
+    protected List<PredicateDefinition> readPredicates(CommandPredicate[] annotations)
     {
-        List<Predicate<CommandEnvironment>> res = new ArrayList<>();
+        List<PredicateDefinition> res = new ArrayList<>();
 
         Map<String, Method> methods = getNamedMethods(instance.getClass());
         for (final CommandPredicate annotation : annotations)
@@ -105,12 +104,13 @@ abstract class AnnotationReader {
                 throw new CommandBuildException("No predicate method found with name " + predicateName);
             if (method.getReturnType() != boolean.class)
                 throw new CommandBuildException("Predicate " + predicateName + " should have boolean return type");
-            res.add(env -> {
+            PredicateDefinition definition = new PredicateDefinition(env -> {
                 Object invoke = new MethodInvoker(method, instanceFactory.getClassInstance(method.getDeclaringClass())).invoke(env);
                 if (!(invoke instanceof Boolean))
                     throw new CommandExecutionException("Predicate function does not return a boolean: " + method.getName());
                 return (boolean) invoke;
-            });
+            }, annotation.strict());
+            res.add(definition);
         }
         return res;
     }

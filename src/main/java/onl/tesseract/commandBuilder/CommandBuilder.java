@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Used to build complex feature-rich commands. Can handle sub commands, arguments, optional
@@ -38,7 +37,7 @@ final class CommandBuilder {
     private boolean absolutePermission = false;
     private Perm.Mode permissionMode = Perm.Mode.INHERIT;
     private boolean playerOnly;
-    private final List<Predicate<CommandEnvironment>> predicates = new ArrayList<>();
+    private final List<PredicateDefinition> predicates = new ArrayList<>();
     private final List<String> aliases = new ArrayList<>();
     private final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters = new ArrayList<>();
 
@@ -198,7 +197,7 @@ final class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder predicate(Predicate<CommandEnvironment> predicate)
+    public CommandBuilder predicate(PredicateDefinition predicate)
     {
         predicates.add(predicate);
         return this;
