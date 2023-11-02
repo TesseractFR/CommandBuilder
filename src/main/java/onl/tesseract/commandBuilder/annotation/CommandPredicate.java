@@ -8,5 +8,11 @@ import java.lang.annotation.*;
 public @interface CommandPredicate {
 
     String value();
+
+    /**
+     * Strict predicates are also executed during tab completion, which has the effect of hiding the subcommand from
+     * tab completion if the predicate returns false
+     */
+    boolean strict() default false;
 }
 

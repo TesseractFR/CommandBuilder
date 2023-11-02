@@ -55,9 +55,16 @@ class MethodInvoker {
         {
             return methodToInvoke.invoke(instance, objects);
         }
-        catch (IllegalAccessException | InvocationTargetException e)
+        catch (IllegalAccessException e)
         {
             e.printStackTrace();
+        }
+        catch (InvocationTargetException e) {
+            if (e.getCause() != null) {
+                e.getCause().printStackTrace();
+            } else {
+                e.printStackTrace();
+            }
         }
         return null;
     }

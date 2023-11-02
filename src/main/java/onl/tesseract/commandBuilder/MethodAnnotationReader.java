@@ -3,13 +3,11 @@ package onl.tesseract.commandBuilder;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandPredicate;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
-import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 final class MethodAnnotationReader extends AnnotationReader {
     private final Method method;
@@ -48,7 +46,7 @@ final class MethodAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    List<Predicate<CommandEnvironment>> readPredicates()
+    List<PredicateDefinition> readPredicates()
     {
         return readPredicates(method.getAnnotationsByType(CommandPredicate.class));
     }

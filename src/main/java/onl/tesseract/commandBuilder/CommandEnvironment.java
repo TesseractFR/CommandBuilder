@@ -37,7 +37,7 @@ public class CommandEnvironment {
             CommandArgument<?> argument = argumentMap.get(argName);
             if (type.isPrimitive())
                 return (T) argument.get();
-            if (argument.get().getClass().equals(type))
+            if (type.isInstance(argument.get()))
                 return type.cast(argument.get());
             else
                 return type.cast(argument);

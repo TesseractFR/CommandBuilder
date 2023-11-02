@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 final class ClassAnnotationReader extends AnnotationReader {
@@ -109,7 +108,7 @@ final class ClassAnnotationReader extends AnnotationReader {
     }
 
     @Override
-    List<Predicate<CommandEnvironment>> readPredicates()
+    List<PredicateDefinition> readPredicates()
     {
         return readPredicates(clazz.getAnnotationsByType(CommandPredicate.class));
     }
