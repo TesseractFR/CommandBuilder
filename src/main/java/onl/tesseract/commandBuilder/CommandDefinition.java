@@ -191,11 +191,11 @@ public class CommandDefinition {
             if (!processArgs(context, bodyArguments, false))
                 return false;
         }
-        else if (context.hasNextArg())
-        {
-            help(sender);
-            return false;
-        }
+//        else if (context.hasNextArg())
+//        {
+//            help(sender);
+//            return false;
+//        }
 
         if (!getPermission().hasPermission(sender))
         {
