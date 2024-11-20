@@ -2,6 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.Perm;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,7 @@ final class CommandBuilder {
     private boolean absolutePermission = false;
     private Perm.Mode permissionMode = Perm.Mode.INHERIT;
     private boolean playerOnly;
+    private boolean isAsync;
     private final List<PredicateDefinition> predicates = new ArrayList<>();
     private final List<String> aliases = new ArrayList<>();
     private final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters = new ArrayList<>();
@@ -256,7 +258,8 @@ final class CommandBuilder {
                 playerOnly,
                 predicates,
                 this.aliases,
-                envInserters
+                envInserters,
+                isAsync
         );
         subCommands.forEach((subCommandName, builder) -> {
             if (builder.permissionMode == Perm.Mode.INHERIT)
@@ -277,6 +280,11 @@ final class CommandBuilder {
     public CommandBuilder setPermissionMode(final Perm.Mode permissionMode)
     {
         this.permissionMode = permissionMode;
+        return this;
+    }
+
+    public CommandBuilder setAsync(boolean async) {
+        isAsync = async;
         return this;
     }
 }

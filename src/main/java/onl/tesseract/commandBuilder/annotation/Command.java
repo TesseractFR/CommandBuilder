@@ -42,4 +42,6 @@ public @interface Command {
     Class<?>[] subCommands() default {};
 
     int helpPriority() default 50;
+
+    boolean isAsync() default false;
 }

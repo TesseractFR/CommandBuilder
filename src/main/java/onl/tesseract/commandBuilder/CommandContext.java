@@ -40,6 +40,7 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
         PluginCommand command = Objects.requireNonNull(plugin.getCommand(commandName));
         command.setExecutor(this);
         command.setTabCompleter(this);
+        this.command.setPlugin(plugin);
     }
 
     @Override
@@ -90,7 +91,8 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
                 .permission(permission.value())
                 .setAbsolutePermission(permission.absolute())
                 .setPermissionMode(permission.mode())
-                .command(reader.readCommandBody());
+                .command(reader.readCommandBody())
+                .setAsync(reader.readIsAsync());
 
         List<CommandArgumentDefinition<?>> arguments = reader.readArguments();
         arguments.forEach(arg -> {

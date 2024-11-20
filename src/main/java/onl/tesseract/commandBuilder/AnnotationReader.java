@@ -169,6 +169,10 @@ abstract class AnnotationReader {
         return args;
     }
 
+    boolean readIsAsync() {
+        return commandAnnotation.isAsync();
+    }
+
     public Object getInstance()
     {
         return instance;

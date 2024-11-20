@@ -2,11 +2,13 @@ package onl.tesseract.commandBuilder;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -37,6 +39,9 @@ public class CommandDefinition {
     private final List<PredicateDefinition> predicates;
     private final List<String> aliases;
     private final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters;
+    private final boolean isAsync;
+    @Setter(AccessLevel.PACKAGE)
+    private Plugin plugin;
 
     CommandDefinition(final List<CommandArgumentDefinition<?>> arguments, final List<CommandArgumentDefinition<?>> optionalArguments,
                       final List<CommandArgumentDefinition<?>> bodyArguments, final BiConsumer<CommandEnvironment, CommandDefinition> consumer,
@@ -44,7 +49,7 @@ public class CommandDefinition {
                       final Map<String, CommandDefinition> subCommandsAliases, final String description, final String name,
                       @NotNull final Permission permission,
                       final boolean playerOnly, final List<PredicateDefinition> predicates, final List<String> aliases,
-                      final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters)
+                      final List<Pair<String, Function<CommandEnvironment, Object>>> envInserters, boolean isAsync)
     {
         this.arguments = arguments;
         this.optionalArguments = optionalArguments;
@@ -59,6 +64,7 @@ public class CommandDefinition {
         this.predicates = predicates;
         this.aliases = aliases;
         this.envInserters = envInserters;
+        this.isAsync = isAsync;
 
         if (!subCommands.containsKey("help") && !name.equals("help"))
         {
@@ -203,8 +209,14 @@ public class CommandDefinition {
             return false;
         }
         executeEnvInserters(env);
-        if (consumer != null)
-            consumer.accept(env, this);
+        if (consumer != null) {
+            if (!isAsync)
+                consumer.accept(env, this);
+            else {
+                Objects.requireNonNull(plugin, "Plugin is required for async commands")
+                        .getServer().getScheduler().runTaskAsynchronously(plugin, () -> consumer.accept(env, this));
+            }
+        }
         else
             help(sender);
         return true;
