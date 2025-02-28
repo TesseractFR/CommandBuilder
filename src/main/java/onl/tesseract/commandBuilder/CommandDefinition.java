@@ -413,7 +413,7 @@ public class CommandDefinition {
         CommandArgumentDefinition<?> arg = null;
         if (index < arguments.size())
             arg = arguments.get(index);
-        else if (index < optionalArguments.size())
+        else if (index - arguments.size() < optionalArguments.size())
             arg = optionalArguments.get(index - arguments.size());
         return Optional.ofNullable(arg);
     }
