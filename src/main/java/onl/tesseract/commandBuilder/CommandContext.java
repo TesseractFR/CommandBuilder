@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import lombok.RequiredArgsConstructor;
 import onl.tesseract.commandBuilder.annotation.Perm;
 import onl.tesseract.commandBuilder.exception.CommandBuildException;
 import org.bukkit.command.CommandExecutor;
@@ -30,9 +31,13 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
 
     final CommandDefinition command;
 
-    public CommandContext()
+    public CommandContext() {
+        this((clazz) -> null);
+    }
+
+    public CommandContext(final CommandInstanceProvider commandInstanceProvider)
     {
-        command = new CommandBuilderProvider().provideForClass(this).build(null);
+        command = new CommandBuilderProvider(commandInstanceProvider).provideForClass(this).build(null);
     }
 
     public void register(final JavaPlugin plugin, final String commandName)
@@ -62,13 +67,16 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
     }
 }
 
+@RequiredArgsConstructor
 final class CommandBuilderProvider implements CommandInstanceFactory {
 
     private static final Map<Class<?>, Object> classToInstance = new HashMap<>();
 
+    private final CommandInstanceProvider commandInstanceProvider;
+
     CommandBuilder provideForClass(final Object commandBuilder) throws CommandBuildException
     {
-        ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder, this);
+        ClassAnnotationReader reader = new ClassAnnotationReader(commandBuilder, this, commandInstanceProvider);
         CommandBuilder command = provide(reader);
         for (final CommandBuilder subCommand : reader.readSubCommands())
         {
@@ -115,14 +123,14 @@ final class CommandBuilderProvider implements CommandInstanceFactory {
     {
         if (classToInstance.containsKey(clazz))
             return classToInstance.get(clazz);
-        Object instance;
-        try
-        {
-            instance = clazz.getDeclaredConstructor().newInstance();
-        }
-        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-        {
-            throw new CommandBuildException(e);
+        Object instance = commandInstanceProvider.provideInstance(clazz);
+        if (instance == null) {
+            try {
+                instance = clazz.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
+                throw new CommandBuildException(e);
+            }
         }
         classToInstance.put(clazz, instance);
         return instance;

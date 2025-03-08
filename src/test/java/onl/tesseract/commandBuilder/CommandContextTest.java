@@ -51,7 +51,7 @@ public class CommandContextTest {
         InnerMethodTestCommand command = new InnerMethodTestCommand();
         Method innerCommand = command.getClass().getMethod("innerCommand");
 
-        CommandBuilder builder = new CommandBuilderProvider().provideFor(command, innerCommand);
+        CommandBuilder builder = new CommandBuilderProvider(CommandInstanceProvider.DEFAULT).provideFor(command, innerCommand);
         assertEquals("inner", builder.getName());
     }
 
@@ -61,7 +61,7 @@ public class CommandContextTest {
         InnerMethodWithArgsTestCommand command = new InnerMethodWithArgsTestCommand();
         Method innerCommand = command.getClass().getMethod("innerCommand", StringCommandArgument.class);
 
-        CommandBuilder builder = new CommandBuilderProvider().provideFor(command, innerCommand);
+        CommandBuilder builder = new CommandBuilderProvider(CommandInstanceProvider.DEFAULT).provideFor(command, innerCommand);
         assertEquals("inner", builder.getName());
         assertEquals(1, builder.arguments.size());
         assertEquals("arg", builder.arguments.get(0).getName());

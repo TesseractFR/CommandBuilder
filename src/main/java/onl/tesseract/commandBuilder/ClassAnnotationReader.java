@@ -17,11 +17,13 @@ import java.util.stream.Collectors;
 final class ClassAnnotationReader extends AnnotationReader {
 
     private final Class<?> clazz;
+    private final CommandInstanceProvider commandInstanceProvider;
 
-    ClassAnnotationReader(final Object instance, CommandInstanceFactory instanceFactory)
+    ClassAnnotationReader(final Object instance, CommandInstanceFactory instanceFactory, CommandInstanceProvider commandInstanceProvider)
     {
         super(instance, instance.getClass().getAnnotation(Command.class), instanceFactory);
         this.clazz = instance.getClass();
+        this.commandInstanceProvider = commandInstanceProvider;
         if (commandAnnotation == null)
             throw new IllegalStateException(clazz.getName() + " should be annotated with @Command");
     }
@@ -71,7 +73,7 @@ final class ClassAnnotationReader extends AnnotationReader {
             if (annotation == null)
                 continue;
             method.setAccessible(true);
-            res.add(new Pair<>(new CommandBuilderProvider().provideFor(instance, method), annotation.helpPriority()));
+            res.add(new Pair<>(new CommandBuilderProvider(commandInstanceProvider).provideFor(instance, method), annotation.helpPriority()));
         }
         res.addAll(readClassCommands(clazz.getDeclaredClasses()));
         // Read external classes
@@ -98,8 +100,11 @@ final class ClassAnnotationReader extends AnnotationReader {
             return null;
         try
         {
-            Object instance = clazz.getDeclaredConstructor().newInstance();
-            return new Pair<>(new CommandBuilderProvider().provideForClass(instance), annotation.helpPriority());
+            Object instance = commandInstanceProvider.provideInstance(clazz);
+            if (instance == null) {
+                instance = clazz.getDeclaredConstructor().newInstance();
+            }
+            return new Pair<>(new CommandBuilderProvider(commandInstanceProvider).provideForClass(instance), annotation.helpPriority());
         }
         catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
         {
