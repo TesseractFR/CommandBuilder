@@ -65,6 +65,10 @@ public abstract class CommandContext implements CommandExecutor, TabCompleter {
     {
         return this.command.tabComplete(sender, args);
     }
+
+    public CommandDefinition getCommandDefinition() {
+        return command;
+    }
 }
 
 @RequiredArgsConstructor
