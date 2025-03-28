@@ -39,4 +39,12 @@ public abstract class CommandArgument<T> {
     {
         return name;
     }
+
+    public boolean isPresent() {
+        return value != null;
+    }
+
+    public boolean isEmpty() {
+        return value == null;
+    }
 }
