@@ -3,9 +3,14 @@ package onl.tesseract.commandBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.exception.CommandExecutionException;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -27,12 +32,14 @@ public class CommandDefinition {
     private final List<CommandArgumentDefinition<?>> optionalArguments;
     private final List<CommandArgumentDefinition<?>> bodyArguments;
     private final BiConsumer<CommandEnvironment, CommandDefinition> consumer;
+
     // Use linked hashmap to keep insertion order
     // Useful to display help messages with subcommands in a pertinent order
     private final Map<String, CommandDefinition> subCommands;
     private final Map<String, CommandDefinition> subCommandsAliases;
     private final String description;
     private final String name;
+    private CommandDefinition parent;
     @NotNull
     private final Permission permission;
     private final boolean playerOnly;
@@ -42,6 +49,10 @@ public class CommandDefinition {
     private final boolean isAsync;
     @Setter(AccessLevel.PACKAGE)
     private Plugin plugin;
+
+    void setParent(CommandDefinition parent) {
+        this.parent = parent;
+    }
 
     CommandDefinition(final List<CommandArgumentDefinition<?>> arguments, final List<CommandArgumentDefinition<?>> optionalArguments,
                       final List<CommandArgumentDefinition<?>> bodyArguments, final BiConsumer<CommandEnvironment, CommandDefinition> consumer,
@@ -77,11 +88,15 @@ public class CommandDefinition {
                             page = 1;
                         try
                         {
-                            env.getSender().sendMessage(helpGetPage(env.getSender(), page - 1));
+                            for (Component line : helpGetPage(env.getSender(), page - 1)) {
+                                env.getSender().sendMessage(line);
+                            }
                         }
                         catch (IllegalArgumentException e)
                         {
-                            env.getSender().sendMessage(helpGetPage(env.getSender(), 0));
+                            for (Component line : helpGetPage(env.getSender(), 0)) {
+                                env.getSender().sendMessage(line);
+                            }
                         }
                     })
                     .build(this)
@@ -104,7 +119,7 @@ public class CommandDefinition {
         catch (CommandExecutionException e)
         {
             logger.error("Unhandled exception during command execution", e);
-            sender.sendMessage(ChatColor.RED + "Une erreur est survenue pendant l'exécution de la commande. Contactez un administrateur pour obtenir de l'aide.");
+            sender.sendMessage(Component.text("Une erreur est survenue pendant l'exécution de la commande. Contactez un administrateur pour obtenir de l'aide.", NamedTextColor.RED));
             return false;
         }
     }
@@ -114,7 +129,7 @@ public class CommandDefinition {
         CommandSender sender = context.getEnvironment().getSender();
         if (playerOnly && !(sender instanceof Player))
         {
-            sender.sendMessage(ChatColor.RED + "This command is player-only");
+            sender.sendMessage(Component.text("This command is player-only", NamedTextColor.RED));
             return false;
         }
         for (var predicate : predicates)
@@ -205,7 +220,7 @@ public class CommandDefinition {
 
         if (!getPermission().hasPermission(sender))
         {
-            sender.sendMessage(ChatColor.RED + "You don't have the permission to perform this command");
+            sender.sendMessage(Component.text("You don't have the permission to perform this command", NamedTextColor.RED));
             return false;
         }
         executeEnvInserters(env);
@@ -232,51 +247,114 @@ public class CommandDefinition {
         envInserters.forEach(pair -> env.set(pair.getLeft(), pair.getRight().apply(env)));
     }
 
-    public String[] helpGetPage(CommandSender sender, int page)
-    {
-        final String[] lines = helpGetAllLines(sender);
-        final int totalPageCount = lines.length / 8 + 1;
-        if (page < 0 || page >= totalPageCount)
+    public List<Component> helpGetPage(CommandSender sender, int page) {
+        List<Component> lines = helpGetAllLines(sender);
+        int totalPageCount = (lines.size() - 1) / 8 + 1;
+
+        if (page < 0 || page >= totalPageCount) {
             throw new IllegalArgumentException("Page index must be between 0 and pageCount - 1");
+        }
 
         int start = page * 8;
-        int end = (page + 1) * 8 + 1;
-        end = Math.min(lines.length, end);
+        int end = Math.min(lines.size(), (page + 1) * 8);
 
-        String[] res = new String[4 + (end - start)];
-        Arrays.fill(res, "");
-        res[1] = ChatColor.GRAY + " --> help page " + (page + 1) + "/" + totalPageCount;
-        // Copy command usages
-        System.arraycopy(lines, start, res, 2, end - start);
-        // Decoration
-        String boxing = "================";
-        res[0] = ChatColor.YELLOW + boxing + ChatColor.GOLD + " " + name + " "
-                + ChatColor.YELLOW + boxing;
-        res[res.length - 2] = "";
-        res[res.length - 1] = ChatColor.YELLOW + "\\".repeat(16) + ChatColor.GOLD + " • "
-                + ChatColor.YELLOW + "/".repeat(16);
+        List<Component> result = new ArrayList<>();
 
-        return res;
+        String boxing = "============";
+        result.add(Component.text(boxing + " " + name + " " + boxing, NamedTextColor.YELLOW, TextDecoration.BOLD));
+        result.add(
+                Component.text("⟹ ", NamedTextColor.GRAY)
+                        .append(Component.text("Aide commandes page ", NamedTextColor.GRAY))
+                        .append(Component.text((page + 1), NamedTextColor.GOLD))
+                        .append(Component.text("/", NamedTextColor.GRAY))
+                        .append(Component.text(totalPageCount, NamedTextColor.GOLD))
+        );
+        result.add(Component.empty());
+
+        for (int i = start; i < end; i++) {
+            result.add(lines.get(i));
+        }
+        result.add(Component.empty());
+
+        int currentPage = page + 1;
+        List<Component> navigation = new ArrayList<>();
+
+        if (currentPage > 1) {
+            Component previousPage = Component.text("[Page Précédente]", NamedTextColor.GOLD)
+                    .clickEvent(ClickEvent.runCommand("/" + name + " help " + (currentPage - 1)))
+                    .hoverEvent(HoverEvent.showText(Component.text("Cliquez pour accéder à la page précédente !", NamedTextColor.YELLOW)));
+            navigation.add(previousPage);
+        }
+
+        if (currentPage < totalPageCount) {
+            Component nextPage = Component.text("[Page Suivante]", NamedTextColor.GOLD)
+                    .clickEvent(ClickEvent.runCommand("/" + name + " help " + (currentPage + 1)))
+                    .hoverEvent(HoverEvent.showText(Component.text("Cliquez pour accéder à la page suivante !", NamedTextColor.YELLOW)));
+            navigation.add(nextPage);
+        }
+
+        if (!navigation.isEmpty()) {
+            Component navLine = Component.empty();
+            for (int i = 0; i < navigation.size(); i++) {
+                navLine = navLine.append(navigation.get(i));
+                if (i < navigation.size() - 1)
+                    navLine = navLine.append(Component.text("  "));
+            }
+            result.add(navLine);
+        }
+
+        result.add(Component.text("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\", NamedTextColor.YELLOW)
+                .append(Component.text(" • ", NamedTextColor.GOLD))
+                .append(Component.text("//////////////////", NamedTextColor.YELLOW)));
+
+        return result;
     }
 
-    private String[] helpGetAllLines(CommandSender sender)
-    {
+    public List<Component> helpGetAllLines(CommandSender sender) {
         List<CommandDefinition> validSubCommands = subCommands.values().stream()
-                                                              .filter(cmd -> cmd.hasPermission(sender))
-                                                              .collect(Collectors.toList());
-        String[] msg = new String[validSubCommands.size() + (description == null || description.isEmpty() ? 0 : 1)];
-        String argList = helpGetArgList();
+                .filter(cmd -> cmd.hasPermission(sender))
+                .toList();
 
-        int i = 0;
-        if (description != null && !description.isEmpty())
-            msg[i++] = ChatColor.GREEN + name + " " + argList + ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN
-                    + description;
-        for (CommandDefinition subCommand : validSubCommands)
-            msg[i++] = ChatColor.GREEN + name + " " + argList + " " + subCommand.getName() + " " + subCommand
-                    .helpGetArgList()
-                    + (subCommand.hasDescription() ? ChatColor.DARK_GRAY + " : " + ChatColor.DARK_GREEN + subCommand
-                    .getDescription() : "");
-        return msg;
+        List<Component> lines = new ArrayList<>();
+
+        boolean showRootCommand = parent != null || validSubCommands.isEmpty();
+
+        // Affiche "/{commandePrincipale}"
+        if (showRootCommand) {
+            lines.add(buildHelpLine(this, parent == null));
+        }
+
+        // Affiche "... {sousCommandes}"
+        for (CommandDefinition sub : validSubCommands) {
+            if (sub.getName().equals("help") && parent != null) continue;
+            lines.add(buildHelpLine(sub, parent == null));
+        }
+
+        return lines;
+    }
+
+    private Component buildHelpLine(CommandDefinition cmd, boolean isRoot) {
+        StringBuilder builder = new StringBuilder();
+
+        if (cmd.parent == null) {
+            builder.append("/").append(cmd.name);
+        } else if (isRoot) {
+            builder.append("/").append(name).append(" ").append(cmd.name);
+        } else {
+            builder.append("... ").append(cmd.name);
+        }
+
+        String args = cmd.helpGetArgList();
+        if (!args.isBlank()) {
+            builder.append(" ").append(args.trim());
+        }
+
+        TextComponent line = Component.text(builder.toString().replaceAll(" +", " "), NamedTextColor.GREEN);
+        if (cmd.hasDescription()) {
+            line = line.append(Component.text(" : ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(cmd.description, NamedTextColor.DARK_GREEN));
+        }
+        return line;
     }
 
     /**
@@ -321,6 +399,11 @@ public class CommandDefinition {
     public String getName()
     {
         return name;
+    }
+
+    public String getFullPath() {
+        if (parent == null) return name;
+        return parent.getFullPath() + " " + name;
     }
 
     public String getDescription()
@@ -384,8 +467,8 @@ public class CommandDefinition {
             if (res == null)
                 return null;
             return res.stream()
-                      .filter(s -> s.startsWith(finalArg))
-                      .collect(Collectors.toList());
+                    .filter(s -> s.startsWith(finalArg))
+                    .collect(Collectors.toList());
         }
         else if (i == arguments.size()) // sub command names
         {
