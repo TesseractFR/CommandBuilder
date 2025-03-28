@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import net.kyori.adventure.text.Component;
 import onl.tesseract.Guild;
 import onl.tesseract.Parcel;
 import onl.tesseract.commandBuilder.sample.FloatArgument;
@@ -94,6 +95,6 @@ class CommandBuilderTest {
 
         cmd.build(null).execute(sender, new String[] {"subCmd"});
         verify(player, times(0)).getName();
-        verify(sender, times(1)).sendMessage(anyString());
+        verify(sender, times(1)).sendMessage(any(Component.class));
     }
 }

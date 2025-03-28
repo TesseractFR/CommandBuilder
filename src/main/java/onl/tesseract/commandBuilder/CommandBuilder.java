@@ -261,6 +261,7 @@ final class CommandBuilder {
                 envInserters,
                 isAsync
         );
+        definition.setParent(parent);
         subCommands.forEach((subCommandName, builder) -> {
             if (builder.permissionMode == Perm.Mode.INHERIT)
                 builder.permissionMode = permissionMode;
