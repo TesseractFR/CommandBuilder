@@ -8,8 +8,8 @@ import onl.tesseract.commandBuilder.exception.ArgumentParsingException;
 import onl.tesseract.commandBuilder.exception.InvalidArgumentTypeException;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.times;
 public class ArgumentTest {
     private CommandSender sender;
 
-    @Before
+    @BeforeEach
     public void setup()
     {
         sender = mock(CommandSender.class);

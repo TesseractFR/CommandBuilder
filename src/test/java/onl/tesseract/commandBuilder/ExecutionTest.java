@@ -6,7 +6,7 @@ import onl.tesseract.commandBuilder.annotation.Perm;
 import onl.tesseract.commandBuilder.exception.CommandExecutionException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.Map;

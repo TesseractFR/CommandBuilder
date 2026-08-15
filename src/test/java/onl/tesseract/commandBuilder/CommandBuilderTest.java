@@ -40,7 +40,7 @@ class CommandBuilderTest {
 
         moneyCommand.build(null).execute(sender, new String[] {"GabRay", "invalid number"});
         verify(player, times(0)).setFlySpeed(anyFloat());
-        verify(sender, times(1)).sendMessage(anyString());
+        verify(sender, times(1)).sendMessage(any(Component.class));
     }
 
     @Test

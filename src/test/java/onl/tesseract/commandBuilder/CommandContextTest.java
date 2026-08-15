@@ -2,7 +2,7 @@ package onl.tesseract.commandBuilder;
 
 import onl.tesseract.commandBuilder.annotation.*;
 import org.bukkit.command.CommandSender;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 

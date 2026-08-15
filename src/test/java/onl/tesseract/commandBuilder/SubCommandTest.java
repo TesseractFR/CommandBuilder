@@ -1,5 +1,6 @@
 package onl.tesseract.commandBuilder;
 
+import net.kyori.adventure.text.Component;
 import onl.tesseract.commandBuilder.annotation.Argument;
 import onl.tesseract.commandBuilder.annotation.Command;
 import onl.tesseract.commandBuilder.annotation.CommandBody;
@@ -7,9 +8,10 @@ import onl.tesseract.commandBuilder.annotation.Perm;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +22,7 @@ public class SubCommandTest {
 
     private CommandSender sender;
 
-    @Before
+    @BeforeEach
     public void setup()
     {
         sender = mock(CommandSender.class);
@@ -76,7 +78,7 @@ public class SubCommandTest {
         boolean res = subCommandWithOptionalArg.command.execute(sender, new String[] {"sub", "help"});
 
         assertTrue(res);
-        verify(sender).sendMessage(any(String[].class));
+        verify(sender,times(6)).sendMessage(any(Component.class));
     }
 
     @Test
