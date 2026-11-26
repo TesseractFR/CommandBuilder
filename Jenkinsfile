@@ -2,13 +2,15 @@
 //
 // Seuls master et les pull requests sont construits ; les autres branches sont
 // ignorées sans réserver d'agent (build « Not built »).
-// - Compilation, tests et qualité : sur master et sur les pull requests.
+// - Compilation et tests (avec couverture JaCoCo) : sur master et sur les pull requests.
+// - Qualité : analyse SonarQube, sur master seulement (l'édition Community de
+//   SonarQube n'analyse qu'une branche par projet, une pull request écraserait master).
 // - Déploiement : sur master seulement. Le jar est publié avec la version du pom
-//   (ex. 3.0-SNAPSHOT) dans le dépôt Maven ARTIFACTS_REPOSITORY_URL, par défaut
-//   /srv/artifacts/maven sur la machine Jenkins, où TesseractLib vient le chercher.
+//   (ex. 3.0-SNAPSHOT) dans le dépôt Maven DEPLOY_REPOSITORY_URL, par défaut
+//   /srv/artifacts/maven sur la machine Jenkins, servi par https://maven.tesseract.onl/.
 //
-// La qualité passe par SpotBugs, PMD et CPD (copier-coller). Leurs rapports sont
-// affichés par le plugin Jenkins « Warnings Next Generation », sans bloquer le build.
+// Prérequis Jenkins : le plugin « SonarQube Scanner » avec un serveur SonarQube
+// déclaré sous le nom SONAR_SERVER (Administrer Jenkins › System).
 
 pipeline {
     agent none
@@ -20,13 +22,17 @@ pipeline {
     }
 
     parameters {
-        string(name: 'ARTIFACTS_REPOSITORY_URL', defaultValue: 'file:///srv/artifacts/maven',
+        string(name: 'DEPLOY_REPOSITORY_URL', defaultValue: 'file:///srv/artifacts/maven',
                description: 'Dépôt Maven où publier le jar de master.')
+        string(name: 'SONAR_SERVER', defaultValue: 'SonarQube',
+               description: 'Nom du serveur SonarQube déclaré dans Jenkins.')
+        booleanParam(name: 'WAIT_QUALITY_GATE', defaultValue: false,
+                     description: 'Attendre le Quality Gate et bloquer le déploiement s\'il échoue (webhook SonarQube vers Jenkins requis).')
     }
 
     environment {
-        SPOTBUGS_PLUGIN = 'com.github.spotbugs:spotbugs-maven-plugin:4.9.8.1'
-        PMD_PLUGIN = 'org.apache.maven.plugins:maven-pmd-plugin:3.28.0'
+        JACOCO_PLUGIN = 'org.jacoco:jacoco-maven-plugin:0.8.14'
+        SONAR_PLUGIN = 'org.sonarsource.scanner.maven:sonar-maven-plugin:5.2.0.4988'
     }
 
     stages {
@@ -48,7 +54,7 @@ pipeline {
 
                 stage('Tests') {
                     steps {
-                        runMaven('test')
+                        runMaven("${env.JACOCO_PLUGIN}:prepare-agent test ${env.JACOCO_PLUGIN}:report")
                     }
                     post {
                         always {
@@ -58,15 +64,18 @@ pipeline {
                 }
 
                 stage('Qualité') {
+                    when { branch 'master' }
                     steps {
-                        runMaven("verify -DskipTests ${env.SPOTBUGS_PLUGIN}:spotbugs ${env.PMD_PLUGIN}:pmd ${env.PMD_PLUGIN}:cpd")
-                    }
-                    post {
-                        always {
-                            recordIssues enabledForFailure: true,
-                                         tools: [spotBugs(pattern: 'target/spotbugsXml.xml'),
-                                                 pmdParser(pattern: 'target/pmd.xml'),
-                                                 cpd(pattern: 'target/cpd.xml')]
+                        withSonarQubeEnv(params.SONAR_SERVER) {
+                            runMaven("${env.SONAR_PLUGIN}:sonar -Dsonar.projectName=CommandBuilder " +
+                                     '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml')
+                        }
+                        script {
+                            if (params.WAIT_QUALITY_GATE) {
+                                timeout(time: 10, unit: 'MINUTES') {
+                                    waitForQualityGate abortPipeline: true
+                                }
+                            }
                         }
                     }
                 }
@@ -74,7 +83,7 @@ pipeline {
                 stage('Déploiement') {
                     when { branch 'master' }
                     steps {
-                        runMaven("deploy -DskipTests -DaltDeploymentRepository=tesseract-artifacts::${params.ARTIFACTS_REPOSITORY_URL}")
+                        runMaven("deploy -DskipTests -DaltDeploymentRepository=tesseract-artifacts::${params.DEPLOY_REPOSITORY_URL}")
                     }
                     post {
                         success {
