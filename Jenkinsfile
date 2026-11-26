@@ -9,8 +9,12 @@
 //   (ex. 3.0-SNAPSHOT) dans le dépôt Maven DEPLOY_REPOSITORY_URL, par défaut
 //   /srv/artifacts/maven sur la machine Jenkins, servi par https://maven.tesseract.onl/.
 //
-// Prérequis Jenkins : le plugin « SonarQube Scanner » avec un serveur SonarQube
-// déclaré sous le nom SONAR_SERVER (Administrer Jenkins › System).
+// Prérequis Jenkins :
+// - un JDK 25 sur l'agent ;
+// - Maven : l'installation Jenkins nommée MAVEN_TOOL (Administrer Jenkins › Tools),
+//   ou à défaut le mvn du PATH de l'agent ;
+// - le plugin « SonarQube Scanner » avec un serveur SonarQube déclaré sous le nom
+//   SONAR_SERVER (Administrer Jenkins › System).
 
 pipeline {
     agent none
@@ -24,6 +28,8 @@ pipeline {
     parameters {
         string(name: 'DEPLOY_REPOSITORY_URL', defaultValue: 'file:///srv/artifacts/maven',
                description: 'Dépôt Maven où publier le jar de master.')
+        string(name: 'MAVEN_TOOL', defaultValue: '',
+               description: 'Nom de l'installation Maven déclarée dans Jenkins. Vide : mvn du PATH de l'agent.')
         string(name: 'SONAR_SERVER', defaultValue: 'SonarQube',
                description: 'Nom du serveur SonarQube déclaré dans Jenkins.')
         booleanParam(name: 'WAIT_QUALITY_GATE', defaultValue: false,
@@ -96,11 +102,16 @@ pipeline {
     }
 }
 
-// Lance Maven : le wrapper sous Unix, le Maven du PATH sous Windows (pas de mvnw.cmd).
+// Lance le Maven de Jenkins : l'installation MAVEN_TOOL si elle est renseignée,
+// sinon le mvn du PATH de l'agent.
 def runMaven(String arguments) {
-    if (isUnix()) {
-        sh "./mvnw -B ${arguments}"
-    } else {
-        bat "mvn -B ${arguments}"
+    def mavenTool = params.MAVEN_TOOL?.trim()
+    def pathEntries = mavenTool ? ["PATH+MAVEN=${tool(mavenTool)}/bin"] : []
+    withEnv(pathEntries) {
+        if (isUnix()) {
+            sh "mvn -B ${arguments}"
+        } else {
+            bat "mvn -B ${arguments}"
+        }
     }
 }
