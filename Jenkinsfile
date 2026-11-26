@@ -29,7 +29,7 @@ pipeline {
         string(name: 'DEPLOY_REPOSITORY_URL', defaultValue: 'file:///srv/artifacts/maven',
                description: 'Dépôt Maven où publier le jar de master.')
         string(name: 'MAVEN_TOOL', defaultValue: '',
-               description: 'Nom de l'installation Maven déclarée dans Jenkins. Vide : mvn du PATH de l'agent.')
+               description: "Nom de l'installation Maven déclarée dans Jenkins. Vide : mvn du PATH de l'agent.")
         string(name: 'SONAR_SERVER', defaultValue: 'SonarQube',
                description: 'Nom du serveur SonarQube déclaré dans Jenkins.')
         booleanParam(name: 'WAIT_QUALITY_GATE', defaultValue: false,
