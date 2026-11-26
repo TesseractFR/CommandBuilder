@@ -1,0 +1,1 @@
+mavenPipeline(sonarName: 'CommandBuilder', archive: 'target/commandbuilder-*.jar')
